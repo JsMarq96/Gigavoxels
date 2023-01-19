@@ -7,11 +7,12 @@ project(GL_GLFW_TEMPLATE)
 
 file(GLOB CPP_SOURCES "src/*.cpp")
 file(GLOB CPP_SUBFOLDER_SOURCES "src/**/*.cpp")
+file(GLOB H_SOURCES "src/*.h")
 file(GLOB C_SOURCES "src/*.c")
 file(GLOB C_SUBFOLDER_SOURCES "src/**/*.c")
 set(includes_dir "includes/")
 
-add_executable(GL_GLFW_TEMPLATE WIN32 ${CPP_SOURCES} ${CPP_SUBFOLDER_SOURCES} ${C_SOURCES} ${C_SUBFOLDER_SOURCES})
+add_executable(GL_GLFW_TEMPLATE WIN32 ${CPP_SOURCES} ${CPP_SUBFOLDER_SOURCES} ${C_SOURCES} ${C_SUBFOLDER_SOURCES} ${H_SOURCES})
 
 add_subdirectory(glm)
 target_link_libraries(GL_GLFW_TEMPLATE glm)

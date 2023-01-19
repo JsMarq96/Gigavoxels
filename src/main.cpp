@@ -11,6 +11,10 @@
 #include "shader.h"
 #include "input_layer.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // Dear IMGUI
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -93,6 +97,33 @@ void cursor_enter_callback(GLFWwindow *window, int entered) {
 	input->is_mouse_on_screen = entered;
 }
 
+void delete_until(char* string, const char symbol) {
+	char* it = string;
+
+	while (*it != '\0') {
+		it++;
+	}
+
+	while (*it != symbol) {
+		it--;
+	}
+
+	*it = '\0';
+}
+
+char* get_path(const char* local_dir) {
+	char* result = (char*) malloc(sizeof(char) * 256);
+#ifdef _WIN32 
+	GetModuleFileName(NULL, (LPSTR) result, 256);
+	delete_until(result, '\\');
+	strcat(result, "\\");
+	strcat(result, local_dir);
+#else
+	// TODO
+#endif
+	return result;
+}
+
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
@@ -105,14 +136,14 @@ void draw_loop(GLFWwindow *window) {
 	// Complex material cube
 	sMeshRenderer cube_renderer;
 	sMesh cube_mesh;
-	cube_mesh.load_OBJ_mesh("resources/cube.obj");
+	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	cube_renderer.create_from_mesh(&cube_mesh);
 
 	sMaterial cube_material;
-	cube_renderer.material.add_texture("resources/textures/normal.png", NORMAL_MAP);
-	cube_renderer.material.add_texture("resources/textures/color.png", COLOR_MAP);
-	cube_renderer.material.add_texture("resources/textures/rough.png", SPECULAR_MAP);
-	cube_renderer.material.add_shader("resources/shaders/pbr.vs", "resources/shaders/pbr.fs");
+	cube_renderer.material.add_texture(get_path("resources\\textures\\normal.png"), NORMAL_MAP);
+	cube_renderer.material.add_texture(get_path("resources\\textures\\color.png"), COLOR_MAP);
+	cube_renderer.material.add_texture(get_path("resources\\textures\\rough.png"), SPECULAR_MAP);
+	cube_renderer.material.add_shader(get_path("resources\\shaders\\pbr.vs"), get_path("resources\\shaders\\pbr.fs"));
 
 
 	double prev_frame_time = glfwGetTime();
