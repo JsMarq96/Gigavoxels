@@ -10,6 +10,7 @@
 #include "mesh_renderer.h"
 #include "shader.h"
 #include "input_layer.h"
+#include "histopyramids.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -143,7 +144,7 @@ void draw_loop(GLFWwindow *window) {
 	cube_renderer.material.add_texture(get_path("resources\\textures\\normal.png"), NORMAL_MAP);
 	cube_renderer.material.add_texture(get_path("resources\\textures\\color.png"), COLOR_MAP);
 	cube_renderer.material.add_texture(get_path("resources\\textures\\rough.png"), SPECULAR_MAP);
-	cube_renderer.material.add_shader(get_path("resources\\shaders\\pbr.vs"), get_path("resources\\shaders\\pbr.fs"));
+	//cube_renderer.material.add_shader(get_path("resources\\shaders\\pbr.vs"), get_path("resources\\shaders\\pbr.fs"));
 
 
 	double prev_frame_time = glfwGetTime();
@@ -157,6 +158,20 @@ void draw_loop(GLFWwindow *window) {
 	//obj_model.set_scale({1.0f, 1.0f, 1.f});
 
 	float camera_angle = 274.001f;
+
+	// Hystopyramid test
+	Histopyramid::sPyramid pyramid = {};
+	pyramid.init();
+
+	uint8_t text_data[32 * 32 * 32] = {};
+	memset(text_data, 0, sizeof(text_data));
+	text_data[20] = 254;
+
+	sTexture test_text = {};
+	load_raw_3D_texture(&test_text, text_data, 32, 32, 32);
+
+	pyramid.compute(test_text, 0.5f);
+	
 
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
@@ -221,8 +236,8 @@ int main() {
 	// GLFW config
 	glfwSetErrorCallback(temp_error_callback);
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);	
 	
 	GLFWwindow* window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_NAME, NULL, NULL);

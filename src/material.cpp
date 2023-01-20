@@ -9,7 +9,7 @@
 
 void sMaterial::add_shader(const char     *vertex_shader,
                                     const char     *fragment_shader) {
-    shader.load_file_shaders(vertex_shader,
+    shader.load_graphic_shaders(vertex_shader,
                              fragment_shader);
 }
 

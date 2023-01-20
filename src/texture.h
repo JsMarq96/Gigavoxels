@@ -8,6 +8,7 @@
 #include <GL/gl3w.h>
 #include <string.h>
 #include <cassert>
+#include <cstdint>
 
 #define DEFAULT_TEXT_FIDELITY 0
 
@@ -18,12 +19,15 @@ struct sTexture {
     // Raw data
     int             width     = 0;
     int             height    = 0;
+    int             depth     = 0;
     int             layers    = 0;
     unsigned char   *raw_data = NULL;
 
     // OpenGL id
     unsigned int     texture_id;
 };
+
+void load_raw_3D_texture(sTexture* text, uint8_t* raw_data, const uint32_t width, const uint32_t height, const uint32_t depth);
 
 void load_texture(sTexture  *text,
                   const bool is_cube_map,

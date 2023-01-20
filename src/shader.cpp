@@ -54,8 +54,8 @@ sShader::sShader(const char* vertex_shader_raw,
     glDeleteShader(fragment_id);
 }
 
-void sShader::load_file_shaders(const char*     v_shader_dir,
-                                const char*     f_shader_dir) {
+void sShader::load_file_graphic_shaders(const char*     v_shader_dir,
+                                        const char*     f_shader_dir) {
     FILE *vert_file, *frag_file;
     int vert_size, frag_size;
     char* raw_vert_shader, *raw_frag_shader;
@@ -89,14 +89,14 @@ void sShader::load_file_shaders(const char*     v_shader_dir,
     fclose(vert_file);
     fclose(frag_file);
 
-    load_shaders(raw_vert_shader, raw_frag_shader);
+    load_graphic_shaders(raw_vert_shader, raw_frag_shader);
 
     free(raw_vert_shader);
     free(raw_frag_shader);
 }
 
-void sShader::load_shaders(const char*   vertex_shader_raw,
-                           const char*   fragment_shader_raw) {
+void sShader::load_graphic_shaders(const char*   vertex_shader_raw,
+                                   const char*   fragment_shader_raw) {
     int vertex_id, fragment_id;
     int compile_successs;
     char compile_log[512];
@@ -143,13 +143,79 @@ void sShader::load_shaders(const char*   vertex_shader_raw,
     glDeleteShader(fragment_id);
 };
 
+void sShader::load_compute_shader(const char* raw_compute) {
+    int compile_successs;
+    char compile_log[512];
+
+    is_compute = true;
+
+    // Create and compile the shaders
+    uint32_t compute_id = glCreateShader(GL_COMPUTE_SHADER);
+
+    glShaderSource(compute_id,
+        1,
+        &raw_compute,
+        NULL);
+    glCompileShader(compute_id);
+    glGetShaderiv(compute_id,
+        GL_COMPILE_STATUS,
+        &compile_successs);
+
+    if (!compile_successs) {
+        glGetShaderInfoLog(compute_id,
+            512,
+            NULL,
+            compile_log);
+       
+        assert(">>>>>Error comiling vertex shader" && false);
+    }
+
+    ID = glCreateProgram();
+    glLinkProgram(ID);
+    glGetProgramiv(ID,
+        GL_LINK_STATUS,
+        &compile_successs);
+
+    if (!compile_successs) {
+        glGetProgramInfoLog(ID,
+            512,
+            NULL,
+            compile_log);
+        
+        assert(">>>>>Shader Linking error" && false);
+    }
+
+    // Cleanup
+    glDeleteShader(compute_id);
+}
+
+
+
 void sShader::activate() const {
     glUseProgram(ID);
 }
 
 void sShader::deactivate() const {
-    int i = 0;
+    glUseProgram(0);
 }
+
+void sShader::dispatch(const uint32_t dispatch_x,
+    const uint32_t dispatch_y,
+    const uint32_t dispatch_z, 
+    const bool wait_for) const {
+    if (!is_compute) {
+        return;
+    }
+
+    glDispatchCompute(dispatch_x,
+        dispatch_y,
+        dispatch_z);
+
+    if (wait_for) {
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+}
+
 
 void sShader::set_uniform(const char* name, 
                         const float value) const {
@@ -209,4 +275,9 @@ void sShader::set_uniform_integet_array(const char* name,
 void sShader::set_uniform_texture(const char* name,
                                   const int tex_spot) const {
     glUniform1i(glGetUniformLocation(ID, name), tex_spot);
+}
+
+
+void sShader::set_ssbo(const char* name, const uint32_t ssbo) {
+
 }

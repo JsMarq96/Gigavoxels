@@ -14,6 +14,39 @@ void upload_simple_texture_to_GPU(sTexture *text);
 
 #include <iostream>
 
+
+void load_raw_3D_texture(sTexture* text, uint8_t* raw_data, const uint32_t width, const uint32_t height, const uint32_t depth) {
+    text->width = width;
+    text->height = height;
+    text->depth = depth;
+
+    glGenTextures(1, &text->texture_id);
+    glBindTexture(GL_TEXTURE_3D, text->texture_id);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
+
+    glTexImage3D(GL_TEXTURE_3D,
+        0,
+        GL_R8,
+        width,
+        height,
+        depth,
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        raw_data);
+
+    glGenerateMipmap(GL_TEXTURE_3D);
+
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
 void load_texture(sTexture  *text,
                   const bool is_cube_map,
                   const bool store_on_RAM,
