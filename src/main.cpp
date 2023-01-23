@@ -165,12 +165,14 @@ void draw_loop(GLFWwindow *window) {
 
 	uint8_t text_data[32 * 32 * 32] = {};
 	memset(text_data, 0, sizeof(text_data));
-	text_data[20] = 254;
+	text_data[1] = 254;
+	text_data[512] = 254;
+	text_data[32 * 32 * 30] = 254;
 
 	sTexture test_text = {};
 	load_raw_3D_texture(&test_text, text_data, 32, 32, 32);
 
-	pyramid.compute(test_text, 0.5f);
+	pyramid.compute(test_text, 0.05f);
 	
 
 	while(!glfwWindowShouldClose(window)) {
