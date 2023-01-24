@@ -43,12 +43,12 @@ uniform uint      u_pyramid_prev_level_width;
 uniform uint      u_pyramid_current_level_start_index;
 uniform uint      u_pyramid_prev_level_start_index;
 void main() {
-	// Locate the child´s position in the array pyramid
+	// Locate the childï¿½s position in the array pyramid
 	uvec3 child_3D_index = gl_WorkGroupID.xyz * uvec3(2) + gl_LocalInvocationID.xyz;
 	uint child_index = child_3D_index.x + child_3D_index.y * u_pyramid_prev_level_width + child_3D_index.z * (u_pyramid_prev_level_width * u_pyramid_prev_level_width);
 	child_index = child_index + u_pyramid_prev_level_start_index;
 
-	// Locate the parent of the child, in order to sum the child´s value
+	// Locate the parent of the child, in order to sum the childï¿½s value
 	uint parent_index = gl_WorkGroupID.x + gl_WorkGroupID.y * u_pyramid_curr_level_width + gl_WorkGroupID.z * (u_pyramid_curr_level_width * u_pyramid_curr_level_width);
 	parent_index = parent_index + u_pyramid_current_level_start_index;
 
@@ -131,7 +131,13 @@ void main() {
 			uint32_t sum = 0;
 			for (uint32_t i = 0; i < (pyramid_size); i++) {
 				sum += pyramids[i];
+				if (pyramids[i] > 0) {
+					std::cout << pyramids[i] << std::endl;
+				}
+				
 			}
+			
+			std::cout << pyramids[0] << std::endl;
 			std::cout.flush();
 
 			int i = pyramids[1];

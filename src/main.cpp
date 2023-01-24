@@ -250,7 +250,7 @@ int main() {
 
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
-
+	
 	if (!window) {
 		std::cout << "Error, could not create window" << std::endl; 
 	} else {
