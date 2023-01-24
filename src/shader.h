@@ -36,6 +36,7 @@ struct sShader {
     void set_uniform(const char* name, const float value) const;
     void set_uniform(const char* name, const int value) const;
     void set_uniform(const char* name, const bool value) const;
+    void set_uniform(const char* name, const uint32_t value) const;
     void set_uniform_vector2D(const char* name, const float value[2]) const;
     void set_uniform_vector(const char* name, const float value[4]) const;
     void set_uniform_vector(const char* name, const glm::vec4 &value) const;

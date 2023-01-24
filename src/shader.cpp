@@ -233,6 +233,10 @@ void sShader::set_uniform(const char* name,
     glUniform1i(glGetUniformLocation(ID, name), (int) value);
 }
 
+void sShader::set_uniform(const char* name, const uint32_t value) const {
+    glUniform1ui(glGetUniformLocation(ID, name), value);
+}
+
 void sShader::set_uniform_vector2D(const char*     name,
                                    const float     value[2]) const {
     glUniform4fv(glGetUniformLocation(ID, name), 1, value);
