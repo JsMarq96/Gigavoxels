@@ -74,6 +74,17 @@ void main() {
 			n_pass.load_compute_shader(compute_shader_n_pass);
 		}
 
+		void clean() {
+			if (pyramids == NULL) {
+				return;
+			}
+
+			free(pyramids);
+			free(pyramid_level_sizes);
+			free(pyramid_level_start);
+			num_of_layers = 0;
+		}
+
 		void compute(const sTexture &volumetri_text, const float threshold) {
 			uint32_t SSBO;
 
@@ -136,6 +147,9 @@ void main() {
 
 			// Get the pyramid back from the GPU memmory
 			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, pyramid_byte_size, pyramids);
+
+			// Clean SSBO
+			glDeleteBuffers(1, &SSBO);
 		}
 	};
 }
