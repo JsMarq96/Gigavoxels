@@ -85,6 +85,11 @@ void main() {
 			num_of_layers = 0;
 		}
 
+		inline uint32_t get_value_at(const uint32_t LOD, const uint32_t x, const uint32_t y, const uint32_t z) {
+			const uint32_t size = pyramid_level_sizes[LOD];
+			return pyramids[pyramid_level_start[LOD] + x + y * size + z * (size * size)];
+		}
+
 		void compute(const sTexture &volumetri_text, const float threshold) {
 			uint32_t SSBO;
 
@@ -130,7 +135,6 @@ void main() {
 			// Build the pyramid from the ground, up
 			n_pass.activate();
 			for (uint16_t curr_level = num_of_layers-1; curr_level > 0; curr_level--) {
-				std::cout << pyramid_level_start[curr_level] <<" " << curr_level << std::endl;
 				n_pass.set_uniform("u_pyramid_current_level_start_index", pyramid_level_start[curr_level]);
 				n_pass.set_uniform("u_pyramid_prev_level_start_index", pyramid_level_start[curr_level+1]);
 				n_pass.set_uniform("u_pyramid_curr_level_width", pyramid_level_sizes[curr_level]);

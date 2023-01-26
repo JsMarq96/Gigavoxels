@@ -10,7 +10,7 @@
 #include "mesh_renderer.h"
 #include "shader.h"
 #include "input_layer.h"
-#include "histopyramids.h"
+#include "gigavoxels.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -159,22 +159,9 @@ void draw_loop(GLFWwindow *window) {
 
 	float camera_angle = 274.001f;
 
-	// Hystopyramid test
-	Histopyramid::sPyramid pyramid = {};
-	pyramid.init();
-
-	uint8_t text_data[32 * 32 * 32] = {};
-	memset(text_data, 0, sizeof(text_data));
-	text_data[1] = 254;
-	text_data[0] = 254;
-	text_data[32 * 32  * 32 - 1] = 254;
-	text_data[32 * 32  * 32 - 5] = 254;
-
-	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 32, 32, 32);
-
-	pyramid.compute(test_text, 0.5f);
 	
+	Gigavoxel::sOctree octree = {};
+	octree.compute_octree(get_path("resources\\bonsai_256x256x256_uint8.raw"), 256, 256, 256);
 
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop

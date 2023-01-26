@@ -28,6 +28,11 @@ struct sTexture {
 };
 
 void load_raw_3D_texture(sTexture* text, uint8_t* raw_data, const uint32_t width, const uint32_t height, const uint32_t depth);
+void load3D_monochrome(sTexture* text, 
+                    const char* texture_name,
+                    const uint16_t width_i,
+                    const uint16_t heigth_i,
+                    const uint16_t depth_i);
 
 void load_texture(sTexture  *text,
                   const bool is_cube_map,
