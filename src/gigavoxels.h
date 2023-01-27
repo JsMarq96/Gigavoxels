@@ -17,6 +17,7 @@ namespace Gigavoxel {
 		uint32_t	 brick_id;  // If brick_id is 0, it is an empty voxel, and if ID is 1, a full one
 	};
 
+	// Given the number of children layers, how many total children does it have
 	inline uint32_t get_number_of_children(const uint32_t num_of_children_layers) {
 		uint32_t count = 0;
 		for(uint32_t i = 0, power = 1; i < num_of_children_layers; i++) {
@@ -83,12 +84,31 @@ namespace Gigavoxel {
 					} else if (fill_rate > FULL_PERCENTAGE) { // Treat it as full block
 						octree[i].brick_id = FULL_VOXEL;
 					} else { // Treat it as mixed block
-						
+						// TODO: here there will be a reference to the mipmap of the
+						// children blocks.
+						// for now, its empty, we use it as ain indicator to iterate
+						// and only use it for the leaf elemenents
 					}
 					i++;
 				}
 			}
 		}
+
+
+		/*
+			In-shader iteration(ray_position, ray_it):
+				1) Ray-cube intersetion
+				2) Get octant of teh intersection
+				3) Check the octant ID in the octree
+				4) if type == FULL: Return a solid
+				5) if type == EMPTY: update the ray_position to the exit point of the octant intersection
+				6) if type == MIX: raymarch throught the associated brick
+					6.5) if exited && no collision: update the ray_position to the exit point of the octant intersection
+				7) If ray_position outside current children, go back one level, until the ray_position is inside the macrovoxel
+				8) Go back to 1)
+
+				I susspect that the more challengin part if goint to be the 7
+		*/
 	};
 }
 
