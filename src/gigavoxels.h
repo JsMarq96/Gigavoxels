@@ -6,6 +6,10 @@
 
 #include "histopyramids.h"
 
+#define FULL_PERCENTAGE   0.85f
+#define EMPTY_PERCENTAGE  0.10f
+#define EMPTY_VOXEL       0
+#define FULL_VOXEL        1
 namespace Gigavoxel {
 
 	struct sVoxel {
@@ -61,40 +65,29 @@ namespace Gigavoxel {
 			// Fill the indices of the octree, using the histopyramid's precomputed ranges
 			// If the son_id is 0, its a leaf
 			octree[0].son_id = 1;
-			for(uint32_t curr_level = 1, i = 1; curr_level < octree_level_count; curr_level++) {
-				uint32_t size = pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level];
+			uint32_t i = 1;
+			// TODO: iterate using the generated indexes of the children, and only fill the importante elements
+			//       and making it a sparse octree!
+			for(uint32_t curr_level = 1; curr_level < octree_level_count; curr_level++) {
+				const uint32_t size = pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level];
+				const uint32_t max_children_count = get_number_of_children(curr_level);
+
 				for(uint32_t j = 0; j < size; j++) {
+					// children index = 2^(level + 2) + (in_parent_child_index * 8)
 					octree[i].son_id = pow(2.0f, curr_level+2) + (i * 8);
+
+					// Check the histopyramid
+					float fill_rate = pyramid.pyramids[i] / (float) max_children_count;
+					if (fill_rate < EMPTY_PERCENTAGE) { // Treat it as empty block
+						octree[i].brick_id = EMPTY_VOXEL;
+					} else if (fill_rate > FULL_PERCENTAGE) { // Treat it as full block
+						octree[i].brick_id = FULL_VOXEL;
+					} else { // Treat it as mixed block
+						
+					}
 					i++;
 				}
 			}
-
-
-			uint32_t empty_blocks = 0;
-			uint32_t full_blocks = 0;
-			uint32_t half_blocks = 0;
-			for(uint32_t z = 0; z < octree_base_level_size; z++) { // NOTE is the cache ordering correct?
-				for(uint32_t y = 0; y < octree_base_level_size; y++) {
-					for(uint32_t x = 0; x < octree_base_level_size; x++) {
-						uint32_t count = pyramid.get_value_at(octree_level_count, x, y, z);
-						
-						float proportion = count / (float) base_32_total_child_count;
-
-						if (proportion < 0.15f) {
-							empty_blocks++;
-						} else if (proportion > 0.85f) {
-							full_blocks++;
-						} else {
-							half_blocks++;
-						}
-					}
-				}
-			}
-
-			std::cout << "Total blocks: " << empty_blocks + full_blocks + half_blocks << std::endl;
-			std::cout << "Half blocks: " << half_blocks << std::endl;
-			std::cout << "Full blocks: " << full_blocks << std::endl;
-			std::cout << "Empty blocks: " << empty_blocks << std::endl;
 		}
 	};
 }
