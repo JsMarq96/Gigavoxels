@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <stdint.h>
+
 #include "shader.h"
 #include "texture.h"
 

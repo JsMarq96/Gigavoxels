@@ -163,6 +163,8 @@ void draw_loop(GLFWwindow *window) {
 	Gigavoxel::sOctree octree = {};
 	octree.compute_octree(get_path("resources\\bonsai_256x256x256_uint8.raw"), 256, 256, 256);
 
+	return;
+
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
 		int width, heigth;
