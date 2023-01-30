@@ -140,16 +140,11 @@ void draw_loop(GLFWwindow *window) {
 
 	sMaterial cube_material;
 #ifdef _WIN32
-	cube_renderer.material.add_texture(get_path("resources\\textures\\normal.png"), NORMAL_MAP);
-	cube_renderer.material.add_texture(get_path("resources\\textures\\color.png"), COLOR_MAP);
-	cube_renderer.material.add_texture(get_path("resources\\textures\\rough.png"), SPECULAR_MAP);
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
-	//cube_renderer.material.add_shader(get_path("resources\\shaders\\pbr.vs"), get_path("resources\\shaders\\pbr.fs"));
+	cube_renderer.material.add_shader(get_path("resources\\shaders\\basic_vertex.vs"), get_path("resources\\shaders\\gigavoxel_fragment.fs"));
 #else
-	cube_renderer.material.add_texture("resources/textures/normal.png", NORMAL_MAP);
-	cube_renderer.material.add_texture("resources/textures/color.png", COLOR_MAP);
-	cube_renderer.material.add_texture("resources/textures/rough.png", SPECULAR_MAP);
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
+	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
 
@@ -175,6 +170,8 @@ void draw_loop(GLFWwindow *window) {
 	
 	Gigavoxel::sOctree octree = {};
 	octree.compute_octree(volume_tex_dir, 256, 256, 256);
+
+	cube_renderer.material.add_SSBO(2, octree.SSBO);
 
 	return;
 

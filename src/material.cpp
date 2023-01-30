@@ -6,6 +6,7 @@
 #include "gl3w.h"
 #include "glcorearb.h"
 #include "texture.h"
+#include <cstdint>
 
 void sMaterial::add_shader(const char     *vertex_shader,
                                     const char     *fragment_shader) {
@@ -75,6 +76,7 @@ void sMaterial::add_cubemap_texture(const char   *text_dir) {
 void sMaterial::enable() const {
     shader.activate();
 
+    // Bind textures
     for (int texture = 0; texture < TEXTURE_TYPE_COUNT; texture++) {
         if (!enabled_textures[texture]) {
             continue;
@@ -83,6 +85,11 @@ void sMaterial::enable() const {
         glBindTexture(GL_TEXTURE_2D, textures[texture].texture_id);
 
         shader.set_uniform_texture(texture_uniform_LUT[texture], texture);
+    }
+
+    // Bind SSBO
+    for(uint8_t i = 0; i < ssbo_count; i++) {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ssbos[i].index, ssbos[i].ssbo);
     }
 }
 

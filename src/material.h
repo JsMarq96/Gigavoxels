@@ -9,12 +9,14 @@
 
 #include <GL/gl3w.h>
 #include <cstddef>
+#include <cstdint>
 
 #include "glcorearb.h"
 #include "texture.h"
 #include "shader.h"
 
 #define TEXTURE_SIZE 3
+#define SSBO_SIZE 10
 
 enum eTextureType : int {
     COLOR_MAP = 0,
@@ -31,11 +33,22 @@ const char texture_uniform_LUT[TEXTURE_TYPE_COUNT][25] = {
    "u_metallic_rough_map"
 };
 
+struct sDataSSBO {
+    uint32_t index = 0;
+    uint32_t ssbo = 0;
+};
+
 struct sMaterial {
     sTexture        textures[TEXTURE_TYPE_COUNT];
     bool            enabled_textures[TEXTURE_TYPE_COUNT] = {false};
+    sDataSSBO       ssbos[SSBO_SIZE] = {};
+    uint8_t         ssbo_count = 0;
 
     sShader         shader;
+
+    void add_SSBO(const uint32_t  block_index, const uint32_t SSBO_index) {
+        ssbos[ssbo_count++] = { .index = block_index, .ssbo = SSBO_index };
+    }
 
     void add_shader(const char     *vertex_shader,
                     const char     *fragment_shader);

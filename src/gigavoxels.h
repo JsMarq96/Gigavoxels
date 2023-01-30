@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "histopyramids.h"
+#include "shader.h"
 
 #define FULL_PERCENTAGE   0.85f
 #define EMPTY_PERCENTAGE  0.10f
@@ -34,6 +35,7 @@ namespace Gigavoxel {
 			sVoxel* octree;
 		};
 		uint32_t  octree_count = 0;
+		uint32_t  SSBO = 0;
 
 		void compute_octree(const char* data_path, 
 							const uint16_t width, 
@@ -84,6 +86,7 @@ namespace Gigavoxel {
 					} else if (fill_rate > FULL_PERCENTAGE) { // Treat it as full block
 						octree[i].brick_id = FULL_VOXEL;
 					} else { // Treat it as mixed block
+						octree[i].brick_id = 2;
 						// TODO: here there will be a reference to the mipmap of the
 						// children blocks.
 						// for now, its empty, we use it as ain indicator to iterate
@@ -92,9 +95,16 @@ namespace Gigavoxel {
 					i++;
 				}
 			}
+
+			// Upload octree to SSBO
+			glGenBuffers(1, &SSBO);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, total_octree_bytesize, raw_octree, GL_DYNAMIC_COPY);
 		}
 
-
+		void bind_gigavoxel(const uint32_t buffer_position) {
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, buffer_position, SSBO);
+		}
 		/*
 			In-shader iteration(ray_position, ray_it):
 				1) Ray-cube intersetion
