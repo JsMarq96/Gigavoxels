@@ -78,7 +78,7 @@ void sSkyBoxRenderer::init(const char       *texture_dir) {
 #ifdef _WIN32
     skybox_material.shader.load_file_graphic_shaders("..\\resources\\shaders\\skybox.vs", "..\\resources\\shaders\\skybox.fs");
 #else
-    skybox_material.shader.load_file_shaders("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+    skybox_material.shader.load_file_graphic_shaders("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
 #endif
 
     skybox_material.add_cubemap_texture(texture_dir);

@@ -137,14 +137,21 @@ void draw_loop(GLFWwindow *window) {
 	// Complex material cube
 	sMeshRenderer cube_renderer;
 	sMesh cube_mesh;
-	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
-	cube_renderer.create_from_mesh(&cube_mesh);
 
 	sMaterial cube_material;
+#ifdef _WIN32
 	cube_renderer.material.add_texture(get_path("resources\\textures\\normal.png"), NORMAL_MAP);
 	cube_renderer.material.add_texture(get_path("resources\\textures\\color.png"), COLOR_MAP);
 	cube_renderer.material.add_texture(get_path("resources\\textures\\rough.png"), SPECULAR_MAP);
+	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	//cube_renderer.material.add_shader(get_path("resources\\shaders\\pbr.vs"), get_path("resources\\shaders\\pbr.fs"));
+#else
+	cube_renderer.material.add_texture("resources/textures/normal.png", NORMAL_MAP);
+	cube_renderer.material.add_texture("resources/textures/color.png", COLOR_MAP);
+	cube_renderer.material.add_texture("resources/textures/rough.png", SPECULAR_MAP);
+	cube_mesh.load_OBJ_mesh("resources/cube.obj");
+#endif
+	cube_renderer.create_from_mesh(&cube_mesh);
 
 
 	double prev_frame_time = glfwGetTime();
@@ -159,9 +166,15 @@ void draw_loop(GLFWwindow *window) {
 
 	float camera_angle = 274.001f;
 
+#ifdef _WIN32
+	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
+#else
+	const char* volume_tex_dir = "resources/bonsai_256x256x256_uint8.raw";
+#endif
+
 	
 	Gigavoxel::sOctree octree = {};
-	octree.compute_octree(get_path("resources\\bonsai_256x256x256_uint8.raw"), 256, 256, 256);
+	octree.compute_octree(volume_tex_dir, 256, 256, 256);
 
 	return;
 
