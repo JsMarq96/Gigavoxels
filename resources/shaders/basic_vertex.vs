@@ -1,11 +1,19 @@
 #version 330 core
 
-layout(location = 0) in vec3  i_pos;
+in  vec3 a_pos;
+in  vec2 a_uv;
 
-//uniform mat3 u_model;
+out vec3 v_world_position;
+out vec3 v_local_position;
+out vec2 v_screen_position;
+
+uniform mat4 u_vp_mat;
+uniform mat4 u_model_mat;
 
 void main() {
-    // TODO: add scalling and centering
-    // TODO: Model matrix really needed...?
-    gl_Position = vec4(i_pos, 0.0);
+    vec4 world_pos = u_model_mat * vec4(a_pos, 1.0);
+    v_world_position = world_pos.xyz;
+    v_local_position = a_pos;
+    gl_Position =  u_vp_mat * world_pos;
+    v_screen_position = ((gl_Position.xy / gl_Position.w) + 1.0) / 2.0;
 }

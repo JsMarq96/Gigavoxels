@@ -125,6 +125,32 @@ char* get_path(const char* local_dir) {
 	return result;
 }
 
+void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir, const glm::vec3 box_origin, const glm::vec3 box_size, glm::vec3 *nearv, glm::vec3 *farv) {
+	glm::vec3 box_min = box_origin;
+    glm::vec3 box_max = box_origin + box_size;
+
+    // Testing X axis slab
+    float tx1 = (box_min.x - ray_origin.x) / ray_dir.x;
+    float tx2 = (box_max.x - ray_origin.x) / ray_dir.x;
+    float tmin = glm::min(tx1, tx2);
+    float tmax = glm::max(tx1, tx2);
+
+    // Testing Y axis slab
+    float ty1 = (box_min.y - ray_origin.y) / ray_dir.y;
+    float ty2 = (box_max.y - ray_origin.y) / ray_dir.y;
+    tmin = glm::max(glm::min(ty1, ty2), tmin);
+    tmax = glm::min(glm::max(ty1, ty2), tmax);
+    // Testing Z axis slab
+    float tz1 = (box_min.z - ray_origin.z) / ray_dir.z;
+    float tz2 = (box_max.z - ray_origin.z) / ray_dir.z;
+
+    tmin = glm::max(glm::min(tz1, tz2), tmin);
+    tmax = glm::min(glm::max(tz1, tz2), tmax);
+
+    *nearv = ray_dir * tmin + ray_origin;
+    *farv = ray_dir * tmax + ray_origin;
+}
+
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
