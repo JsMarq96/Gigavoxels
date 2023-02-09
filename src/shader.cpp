@@ -110,6 +110,7 @@ void sShader::load_graphic_shaders(const char*   vertex_shader_raw,
 
     if (!compile_successs) {
         glGetShaderInfoLog(vertex_id, 512, NULL, compile_log);
+        std::cout << compile_log << std::endl;
         assert(">>>>>Error comiling vertex shader" && false);
     }
 

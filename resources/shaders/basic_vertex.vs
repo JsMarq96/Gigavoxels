@@ -2,6 +2,7 @@
 
 in  vec3 a_pos;
 in  vec2 a_uv;
+in  vec3 a_normal;
 
 out vec3 v_world_position;
 out vec3 v_local_position;

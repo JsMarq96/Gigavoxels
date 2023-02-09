@@ -10,8 +10,8 @@
 
 void sMaterial::add_shader(const char     *vertex_shader,
                                     const char     *fragment_shader) {
-    shader.load_graphic_shaders(vertex_shader,
-                             fragment_shader);
+    shader.load_file_graphic_shaders(vertex_shader,
+                                     fragment_shader);
 }
 
 void sMaterial::add_texture(const char*           text_dir,

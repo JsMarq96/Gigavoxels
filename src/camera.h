@@ -62,7 +62,7 @@ struct sCamera {
     void
     look_at(const glm::vec3 &center) {
       f = glm::normalize(glm::vec3{center.x - position.x, center.y - position.y, center.z - position.z});
-      s = glm::cross(f, glm::normalize(glm::vec3{0.f, 1.0f, 0.0f}));
+      s = glm::cross(f, (glm::vec3{0.f, 1.0f, 0.0f}));
       u = glm::cross(s, f);
 
       view_mat = glm::lookAt(f,

@@ -4,6 +4,8 @@
 
 #include <glm/glm.hpp>
 
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "texture.h"
 #include "mesh.h"
 #include "material.h"
@@ -155,10 +157,9 @@ void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
 	// Config scene
-	sCamera camera;
-	glm::vec3 camera_original_position = glm::vec3{2.0f, 2.60f, 2.0f};
-	camera.position = camera_original_position;
-	camera.look_at(glm::vec3{0.0f, 0.0f, 0.0f});
+	glm::vec3 camera_original_position = glm::vec3{5.0f, 5.60f, 5.0f};
+	glm::mat4x4 view_mat = glm::lookAt(glm::vec3{5.0f, 5.60f, 5.0f}, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
+	glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
 	// Complex material cube
 	sMeshRenderer cube_renderer;
@@ -179,9 +180,8 @@ void draw_loop(GLFWwindow *window) {
 	sInputLayer *input_state = get_game_input_instance();
 
 	glm::mat4x4 viewproj_mat = {};
-	glm::mat4x4 proj_mat = {};
 
-	glm::mat4x4 obj_model = {};
+	glm::mat4x4 obj_model = glm::mat4x4(1.0f);
 	//obj_model.set_identity();
 	//obj_model.set_scale({1.0f, 1.0f, 1.f});
 
@@ -198,8 +198,6 @@ void draw_loop(GLFWwindow *window) {
 	octree.compute_octree(volume_tex_dir, 256, 256, 256);
 
 	cube_renderer.material.add_SSBO(2, octree.SSBO);
-
-	return;
 
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
@@ -236,16 +234,13 @@ void draw_loop(GLFWwindow *window) {
 
 		// Rotate the camera arround
 		if (ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 360.0f)) {
-			camera.position.x = (camera_original_position.x * cos(camera_angle / (180.0f / PI))) - (camera_original_position.z * sin(camera_angle/ (180.0f / PI)));
-			camera.position.z = (camera_original_position.z * sin(camera_angle/ (180.0f / PI))) + (camera_original_position.x * cos(camera_angle/ (180.0f / PI)));
+			//camera.position.x = (camera_original_position.x * cos(camera_angle / (180.0f / PI))) - (camera_original_position.z * sin(camera_angle/ (180.0f / PI)));
+			//camera.position.z = (camera_original_position.z * sin(camera_angle/ (180.0f / PI))) + (camera_original_position.x * cos(camera_angle/ (180.0f / PI)));
 		}
 
-		ImGui::SliderFloat("Camera up-down", &camera.position.y, -3.01f, 8.0f);
 
-		camera.look_at({0.0f, 0.0f, 0.0f});
-		camera.get_perspective_viewprojection_matrix(90.0f, 1000.0f, 0.01f, aspect_ratio, &viewproj_mat);
 
-		cube_renderer.render(&obj_model, 1, viewproj_mat, false, camera);
+		cube_renderer.render(&obj_model, 1, projection_mat * view_mat, false);
 
 		ImGui::End();
 
