@@ -29,6 +29,7 @@ namespace Gigavoxel {
 		return count;
 	}
 
+	// TODO: REVISAR OCTREE THIS SHIT FUCKY
 	struct sOctree {
 		union {
 			uint64_t *raw_octree = NULL;
