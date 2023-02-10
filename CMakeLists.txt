@@ -10,8 +10,10 @@ file(GLOB CPP_SUBFOLDER_SOURCES "src/**/*.cpp")
 file(GLOB H_SOURCES "src/*.h")
 file(GLOB C_SOURCES "src/*.c")
 file(GLOB C_SUBFOLDER_SOURCES "src/**/*.c")
+file(GLOB GLSL_SHADERS "resources/shaders/*")
+file(GLOB TEXTURES "resources/textures/*")
+file(GLOB VOLUMES_TEXTURES "resources/volumens/*")
 set(includes_dir "includes/")
-
 add_executable(GL_GLFW_TEMPLATE ${CPP_SOURCES} ${CPP_SUBFOLDER_SOURCES} ${C_SOURCES} ${C_SUBFOLDER_SOURCES} ${H_SOURCES})
 
 add_subdirectory(glm)
@@ -37,6 +39,9 @@ include_directories(
 
 set_target_properties(GL_GLFW_TEMPLATE PROPERTIES OUTPUT_NAME "template")
 
-add_custom_command(TARGET GL_GLFW_TEMPLATE POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:GL_GLFW_TEMPLATE>/resources)
+foreach (SHADER ${GLSL_SHADERS})
+    string(REGEX REPLACE "resources/$" ${CMAKE_BINARY_DIR}"/resources/" SHADER_DEST ${SHADER})
+    set(GLSL_DEST_SHADERS ${GLSL_DEST_SHADERS} ${SHADER_DEST})
+endforeach ()
+
+configure_file(${GLSL_SHADERS} ${GLSL_DEST_SHADERS} COPYONLY)
