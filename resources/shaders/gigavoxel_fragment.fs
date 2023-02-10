@@ -69,11 +69,17 @@ bool is_inside_AABB(in vec3 point,
 uint get_octant_index_of_pos(in vec3 pos, 
                              in vec3 center) {
     const vec3 relative_pos = normalize(pos - center);
+
+    const vec3 indices = vec3(1.0, 2.0, 4.0);
+    uvec3 comp = uvec3(step(relative_pos, vec3(EPSILON)) * indices);
+
+    return comp.x + comp.y + comp.z;
+/*
     uint index = 0u;
 
     if (relative_pos.x > EPSILON) {
         index += 1u;
-    }
+    }   
 
     if (relative_pos.y > EPSILON) {
         index += 2u; //  y = 2 * 1
@@ -83,7 +89,7 @@ uint get_octant_index_of_pos(in vec3 pos,
         index += 4u; // z = 2 * 2 * 1
     }
 
-    return index;
+    return index;*/
 }
 
 
@@ -111,10 +117,11 @@ uint unroll_the_tree(in vec3 point,
     return current_index;
 }
 
+// Get a color, given an origin
 vec4 iterate_octree(in vec3 ray_origin, 
                     in vec3 ray_dir) {
     vec3 it_ray_pos = ray_origin;
-    uint it_octree_index = 0;
+    uint it_octree_index = 0u;
 
     vec3 box_near_intersection = vec3(0.0);
     vec3 box_far_intersection = vec3(0.0);
@@ -124,7 +131,7 @@ vec4 iterate_octree(in vec3 ray_origin,
     sVoxel curr_voxel;
     uint iterations_history[MAX_ITERATIONS];
     vec3 center_history[MAX_ITERATIONS];
-    uint history_index = 0;
+    uint history_index = 0u;
 
     for(uint i = 0u; i < MAX_ITERATIONS; i++) {
         // Store an history of indeces in order to unroll the tree
@@ -141,7 +148,7 @@ vec4 iterate_octree(in vec3 ray_origin,
 
             // Early out
             if (!is_inside_AABB(exit_point, vec3(0.0), vec3(1.0))) {
-                // it is outside of the bounding box
+                // it is outside of the main bounding box
                 return vec4(0.0, 0.0, 0.5, 1.0);
             }
 
@@ -151,7 +158,7 @@ vec4 iterate_octree(in vec3 ray_origin,
                                             center_history, 
                                             box_origin, 
                                             box_size);
-
+            // Continue from the found point
             it_octree_index = iterations_history[history_index];
             
             // Get octant of the point
@@ -172,10 +179,12 @@ vec4 iterate_octree(in vec3 ray_origin,
             box_size = box_size * vec3(0.5);
         }
 
+        // Iterate to the according child
         it_octree_index = voxels[it_octree_index + curr_octant].son_id;
         history_index++;
     }
 
+    // Out of iterations
     return vec4(0.0, 0.0, 0.0, 1.0);
 }
 
@@ -184,5 +193,9 @@ void main() {
     vec3 ray_dir = normalize(v_local_position - ray_origin);
     vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(1.0);
 
-    o_frag_color = vec4(1.0,1.0,1.0,1.0);//u_color;
+    ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
+
+    uint index = get_octant_index_of_pos(far, box_origin);
+
+    o_frag_color = vec4(vec3(0.0),1.0);//u_color;
 }
