@@ -7,8 +7,8 @@
 #include "histopyramids.h"
 #include "shader.h"
 
-#define FULL_PERCENTAGE   0.85f
-#define EMPTY_PERCENTAGE  0.10f
+#define FULL_PERCENTAGE   0.95f
+#define EMPTY_PERCENTAGE  0.05f
 #define EMPTY_VOXEL       0
 #define FULL_VOXEL        1
 namespace Gigavoxel {
@@ -67,6 +67,7 @@ namespace Gigavoxel {
 
 			// Fill the indices of the octree, using the histopyramid's precomputed ranges
 			// If the son_id is 0, its a leaf
+			octree[0].brick_id = 2;
 			octree[0].son_id = 1;
 			uint32_t i = 1;
 			// TODO: iterate using the generated indexes of the children, and only fill the importante elements

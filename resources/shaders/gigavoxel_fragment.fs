@@ -4,7 +4,7 @@ in vec3 v_local_position;
 
 layout(location = 0) out vec4 o_frag_color;
 
-uniform vec3 u_camera_eye_local;
+uniform vec3 u_camera_position;
 
 struct sVoxel {
     uint son_id;
@@ -15,7 +15,7 @@ layout(std430, binding = 2) buffer gigavoxel_ssbo {
     sVoxel voxels[];
 };
 
-const float EPSILON = 0.01;
+const float EPSILON = 0.001;
 const uint MAX_ITERATIONS = 200;
 
 // HELPER FUNCTIONS ================================================
@@ -189,13 +189,15 @@ vec4 iterate_octree(in vec3 ray_origin,
 }
 
 void main() {
-    vec3 ray_origin = u_camera_eye_local; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
+    vec3 ray_origin = u_camera_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
     vec3 ray_dir = normalize(v_local_position - ray_origin);
     vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(1.0);
 
+    o_frag_color = iterate_octree(ray_origin, ray_dir);
+
     ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
 
-    uint index = get_octant_index_of_pos(far, box_origin);
+    uint index = get_octant_index_of_pos(near, box_origin);
 
-    o_frag_color = vec4(vec3(0.0),1.0);//u_color;
+    //o_frag_color = vec4(vec3(index)/8.0,1.0);//u_color;
 }

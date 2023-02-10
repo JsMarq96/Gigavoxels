@@ -127,6 +127,24 @@ char* get_path(const char* local_dir) {
 	return result;
 }
 
+glm::vec3 rotate_point(glm::vec3 point, float angle,glm::vec3 center) {
+  float s = sin(angle);
+  float c = cos(angle);
+
+  // translate point back to origin:
+  point.x -= center.x;
+  point.z -= center.z;
+
+  // rotate point
+  float xnew = point.x * c - point.z * s;
+  float ynew = point.x * s + point.z * c;
+
+  // translate point back:
+  point.x = xnew + center.x;
+  point.z = ynew + center.z;
+  return point;
+}
+
 void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir, const glm::vec3 box_origin, const glm::vec3 box_size, glm::vec3 *nearv, glm::vec3 *farv) {
 	glm::vec3 box_min = box_origin;
     glm::vec3 box_max = box_origin + box_size;
@@ -156,11 +174,6 @@ void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
-	// Config scene
-	glm::vec3 camera_original_position = glm::vec3{5.0f, 5.60f, 5.0f};
-	glm::mat4x4 view_mat = glm::lookAt(glm::vec3{5.0f, 5.60f, 5.0f}, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
-	glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
-
 	// Complex material cube
 	sMeshRenderer cube_renderer;
 	sMesh cube_mesh;
@@ -168,7 +181,7 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial cube_material;
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
-	cube_renderer.material.add_shader(get_path("resources\\shaders\\basic_vertex.vs"), get_path("resources\\shaders\\gigavoxel_fragment.fs"));
+	cube_renderer.material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
@@ -185,7 +198,7 @@ void draw_loop(GLFWwindow *window) {
 	//obj_model.set_identity();
 	//obj_model.set_scale({1.0f, 1.0f, 1.f});
 
-	float camera_angle = 274.001f;
+	float camera_angle = 0.01f;
 
 #ifdef _WIN32
 	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
@@ -233,14 +246,14 @@ void draw_loop(GLFWwindow *window) {
 		ImGui::Begin("Scene control");
 
 		// Rotate the camera arround
-		if (ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 360.0f)) {
-			//camera.position.x = (camera_original_position.x * cos(camera_angle / (180.0f / PI))) - (camera_original_position.z * sin(camera_angle/ (180.0f / PI)));
-			//camera.position.z = (camera_original_position.z * sin(camera_angle/ (180.0f / PI))) + (camera_original_position.x * cos(camera_angle/ (180.0f / PI)));
-		}
+		ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 2.0f * PI);
 
+		// Config scene
+		glm::vec3 camera_original_position = rotate_point(glm::vec3{5.0f, 5.60f, 5.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
+		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
+		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
-
-		cube_renderer.render(&obj_model, 1, projection_mat * view_mat, false);
+		cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		ImGui::End();
 

@@ -60,6 +60,7 @@ struct sMeshRenderer {
 
     void render(const glm::mat4x4 *models,
                 const int count,
+                const glm::vec3 &camera_position,
                 const glm::mat4x4 &view_proj,
                 const bool show_wireframe) const {
 
@@ -73,7 +74,7 @@ struct sMeshRenderer {
         for(int i = 0; i < count; i++) {
             material.shader.set_uniform_matrix4("u_model_mat", models[i]);
             material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
-            //material.shader.set_uniform_vector("u_camera_position", camera.position);
+            material.shader.set_uniform_vector("u_camera_position", camera_position);
             glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_SHORT, 0);
         }
 
