@@ -140,7 +140,10 @@ void main() {
 				n_pass.set_uniform("u_pyramid_prev_level_start_index", pyramid_level_start[curr_level+1]);
 				n_pass.set_uniform("u_pyramid_curr_level_width", pyramid_level_sizes[curr_level]);
 				n_pass.set_uniform("u_pyramid_prev_level_width", pyramid_level_sizes[curr_level+1]);
-				n_pass.dispatch(pyramid_level_sizes[curr_level], pyramid_level_sizes[curr_level], pyramid_level_sizes[curr_level], true);
+				n_pass.dispatch(pyramid_level_sizes[curr_level], 
+								pyramid_level_sizes[curr_level], 
+								pyramid_level_sizes[curr_level], 
+								true);
 			}
 			// Last pass (layer 0)
 			n_pass.set_uniform("u_pyramid_current_level_start_index", pyramid_level_start[0]);

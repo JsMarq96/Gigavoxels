@@ -167,8 +167,8 @@ void sShader::load_compute_shader(const char* raw_compute) {
             512,
             NULL,
             compile_log);
-       
-        assert(">>>>>Error comiling vertex shader" && false);
+        std::cout << compile_log << std::endl;
+        assert(">>>>>Error comiling compute shader" && false);
     }
 
     ID = glCreateProgram();

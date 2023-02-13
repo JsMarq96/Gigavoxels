@@ -11,6 +11,7 @@
 #define EMPTY_PERCENTAGE  0.05f
 #define EMPTY_VOXEL       0
 #define FULL_VOXEL        1
+#define HALF_VOXEL        2
 namespace Gigavoxel {
 
 	struct sVoxel {
@@ -29,13 +30,18 @@ namespace Gigavoxel {
 		return count;
 	}
 
-	// TODO: REVISAR OCTREE THIS SHIT FUCKY
+	// TODO: REVISAR pyramid THIS SHIT FUCKY
 	struct sOctree {
 		union {
 			uint64_t *raw_octree = NULL;
 			sVoxel* octree;
 		};
-		uint32_t  octree_count = 0;
+
+		// Lazy to allocate memmory on runtime
+		uint32_t octree_level_start[64];
+		uint32_t octree_level_sizes[64];
+		uint32_t  octree_size = 0;
+
 		uint32_t  SSBO = 0;
 
 		void compute_octree(const char* data_path, 
@@ -50,58 +56,131 @@ namespace Gigavoxel {
 			load3D_monochrome(&test_text, data_path, width, height, depth);
 
 			// Compute the histopyramid
-			pyramid.compute(test_text, 0.5f);
+			pyramid.compute(test_text, 0.20f);
 
-			// Determine the octree size
-			const uint32_t base_32_level_count = 5;
-			const uint32_t base_32_total_child_count = get_number_of_children(base_32_level_count);
-			const uint32_t octree_level_count = pyramid.num_of_layers - base_32_level_count + 1; // Plus one, since they share 1 layer
-			const uint32_t octree_base_level_size = (uint32_t) pow(2.0f, octree_level_count);
-			// const uint32_t base_32_number_of_child_blocks = get_number_of_children(base_32_level_count); 
-			const uint32_t base_32_number_of_child_blocks = 37448;
-			
-			// Compute the size of the octree & initilize it
-			octree_count = get_number_of_children(octree_level_count+1);
-			const uint32_t total_octree_bytesize = octree_count * sizeof(sVoxel);
-			octree = (sVoxel*) malloc(total_octree_bytesize);
-			memset(octree, 0, total_octree_bytesize);
+			const uint32_t base_16_level_count = 4;
+			// The size of the octree is the size of the pyramid, but without thelast 4 levels
+			const uint32_t octree_layer_count = pyramid.num_of_layers - base_16_level_count;
+			const uint32_t octree_base_level_size = pow(2.0f, octree_layer_count);
 
-			// Fill the indices of the octree, using the histopyramid's precomputed ranges
-			// If the son_id is 0, its a leaf
-			octree[0].brick_id = 2;
-			octree[0].son_id = 1;
-			uint32_t i = 1;
-			// TODO: iterate using the generated indexes of the children, and only fill the importante elements
-			//       and making it a sparse octree!
-			for(uint32_t curr_level = 1; curr_level < octree_level_count; curr_level++) {
-				const uint32_t size = pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level] * pyramid.pyramid_level_sizes[curr_level];
-				const uint32_t max_children_count = get_number_of_children(curr_level);
+			// Compute octree size & allocate it ===========
+			uint32_t octree_bytesize = 0;
+			{
+				octree_size = 1;
+				// For each level, add to the count the size and store it, as the beginig of the next level
+				for (uint32_t i = 1, pow = 1; i <= octree_layer_count; i++) {
+					pow *= 2;
+					octree_level_start[i] = octree_size;
+					octree_level_sizes[i] = pow;
+					octree_size += pow * pow * pow;
+				}
 
-				for(uint32_t j = 0; j < size; j++) {
-					// children index = 2^(level + 2) + (in_parent_child_index * 8)
-					octree[i].son_id = pow(2.0f, curr_level+2) + (i * 8);
+				octree_bytesize = octree_size * sizeof(sVoxel);
+				octree = (sVoxel*) malloc(octree_bytesize);
+				memset(octree, 0, octree_bytesize);
+			}
+	
+			// Fill the base layer ================
+			{
+				const uint32_t axis_size = octree_base_level_size;
+				const uint32_t axis_y_stride = axis_size * axis_size;
+				const uint32_t layer_size = axis_y_stride * axis_size;
 
-					// Check the histopyramid
-					float fill_rate = pyramid.pyramids[i] / (float) max_children_count;
+				const uint32_t max_children_count = 16 * 16 * 16;
+
+				// the indices did not align to expected values!!!
+				for(uint32_t i = 0; i < layer_size; i++) {
+					uint32_t pyramid_index = pyramid.pyramid_level_start[octree_layer_count] + i;
+					uint32_t octree_index = octree_level_start[octree_layer_count] + i;
+
+					float fill_rate = pyramid.pyramids[pyramid_index] / (float) max_children_count;
+
+					octree[octree_index].son_id = 0; // 0 since it is a leaf
 					if (fill_rate < EMPTY_PERCENTAGE) { // Treat it as empty block
-						octree[i].brick_id = EMPTY_VOXEL;
+						octree[octree_index].brick_id = EMPTY_VOXEL;
 					} else if (fill_rate > FULL_PERCENTAGE) { // Treat it as full block
-						octree[i].brick_id = FULL_VOXEL;
+						octree[octree_index].brick_id = FULL_VOXEL;
 					} else { // Treat it as mixed block
-						octree[i].brick_id = 2;
+						octree[octree_index].brick_id = HALF_VOXEL;
 						// TODO: here there will be a reference to the mipmap of the
 						// children blocks.
 						// for now, its empty, we use it as ain indicator to iterate
 						// and only use it for the leaf elemenents
 					}
-					i++;
 				}
 			}
 
+			// Build the octree from the ground up
+			// algo raro
+			{
+				
+				for(uint32_t level = octree_layer_count; level > 0; level--) {
+					// Level starts
+					uint32_t curr_level_start = octree_level_start[level];
+					uint32_t prev_level_start = octree_level_start[level+1];
+
+					// Curr level stride & sizes
+					uint32_t level_size = octree_level_sizes[level];
+					uint32_t level_size_pow_2 = level_size * level_size; // size^2
+					uint32_t level_size_pow_3 = level_size_pow_2 * level_size; // size^3
+					uint32_t prev_level_size = octree_level_sizes[level+1];
+					uint32_t prev_level_size_pow_2 = prev_level_size * prev_level_size; // size^2
+
+					for(uint32_t i = 0; i < level_size_pow_3; i++) {
+						// Get current level x,y,z coords, and translate them to
+						// the previus layer's coordnates (multiply by 2)
+						uint32_t prev_x = (i / level_size_pow_2) * 2;
+						uint32_t prev_y = ((i / level_size) % level_size) * 2;
+						uint32_t prev_z = (i % level_size) * 2;
+
+						// Get the octree indices for the current value and 
+						// the first child (at relative 0,0,0) 
+						uint32_t prev_start_index = prev_x + prev_y * prev_level_size + prev_z * prev_level_size_pow_2;
+						prev_start_index += prev_level_start;
+						uint32_t curr_index = i + curr_level_start;
+
+						// Transalte teh coordinates to the previus layer
+						// Itarete on the prev level's children
+						bool has_had_fist = false;
+						uint32_t curr_type = 0;
+						for(uint32_t z = 0; z < 2; z++) {
+							// For the index calculation
+							uint32_t d_z = z * prev_level_size_pow_2; 
+							for(uint32_t y = 0; y < 2; y++) {
+								// For the index calculation
+								float d_y = y * prev_level_size; 
+								for(uint32_t x = 0; x < 2; x++) {
+									uint32_t child_index = prev_start_index + x + d_y + d_z;
+
+									if (!has_had_fist) {
+										curr_type = octree[child_index].brick_id; 
+										has_had_fist = true;
+									} else {
+										if (curr_type != octree[child_index].brick_id) {
+											// The children's type differ, so the result
+											// is mixed
+											curr_type = HALF_VOXEL;
+											goto children_checking_loop_end; // Quick exit out
+										}
+									}
+									// TODO: check if all children are gigavoxel, might need to add a reference to
+									// a mip of the values
+								}
+							}
+						}
+						children_checking_loop_end:
+						// Set the index of the current element's son as the starting index (0,0,0) of the children
+						octree[curr_index].son_id = prev_start_index;
+						octree[curr_index].brick_id = curr_type;
+					}
+				}
+			}
+
+			std::cout << octree[1].brick_id << " " << octree[2].brick_id << std::endl;
 			// Upload octree to SSBO
 			glGenBuffers(1, &SSBO);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, total_octree_bytesize, raw_octree, GL_DYNAMIC_COPY);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, octree_bytesize, raw_octree, GL_DYNAMIC_COPY);
 		}
 
 		void bind_gigavoxel(const uint32_t buffer_position) {

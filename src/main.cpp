@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "input_layer.h"
 #include "gigavoxels.h"
+#include "volume_counter.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -179,6 +180,7 @@ void draw_loop(GLFWwindow *window) {
 	sMesh cube_mesh;
 
 	sMaterial cube_material;
+
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	cube_renderer.material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
