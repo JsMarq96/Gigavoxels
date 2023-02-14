@@ -44,19 +44,27 @@ namespace Gigavoxel {
 
 		uint32_t  SSBO = 0;
 
-		void compute_octree(const char* data_path, 
+		void compute_octree_from_adress(const char* data_path, 
+							const uint16_t width, 
+							const uint16_t depth, 
+							const uint16_t height) {
+			//
+			// Load the 3D texture of the volume
+			sTexture test_text = {};
+			load3D_monochrome(&test_text, data_path, width, height, depth);
+
+			compute_octree(test_text, width, depth, height);
+		}
+
+		void compute_octree(const sTexture &volume, 
 							const uint16_t width, 
 							const uint16_t depth, 
 							const uint16_t height) {
 			Histopyramid::sPyramid pyramid = {};
 			pyramid.init();
 
-			// Load the 3D texture of the volume
-			sTexture test_text = {};
-			load3D_monochrome(&test_text, data_path, width, height, depth);
-
 			// Compute the histopyramid
-			pyramid.compute(test_text, 0.20f);
+			pyramid.compute(volume, 0.20f);
 
 			const uint32_t base_16_level_count = 4;
 			// The size of the octree is the size of the pyramid, but without thelast 4 levels
@@ -88,6 +96,11 @@ namespace Gigavoxel {
 
 				const uint32_t max_children_count = 16 * 16 * 16;
 
+				// stats for verification
+				uint32_t empty = 0;
+				uint32_t full = 0;
+				uint32_t mix = 0;
+
 				// the indices did not align to expected values!!!
 				for(uint32_t i = 0; i < layer_size; i++) {
 					uint32_t pyramid_index = pyramid.pyramid_level_start[octree_layer_count] + i;
@@ -98,18 +111,24 @@ namespace Gigavoxel {
 					octree[octree_index].son_id = 0; // 0 since it is a leaf
 					if (fill_rate < EMPTY_PERCENTAGE) { // Treat it as empty block
 						octree[octree_index].brick_id = EMPTY_VOXEL;
+						empty++;
 					} else if (fill_rate > FULL_PERCENTAGE) { // Treat it as full block
 						octree[octree_index].brick_id = FULL_VOXEL;
+						full++;
 					} else { // Treat it as mixed block
 						octree[octree_index].brick_id = HALF_VOXEL;
+						mix++;
 						// TODO: here there will be a reference to the mipmap of the
 						// children blocks.
 						// for now, its empty, we use it as ain indicator to iterate
 						// and only use it for the leaf elemenents
 					}
 				}
+				std::cout << empty << " " << full << " " << mix << std::endl;
 			}
 
+			octree[0].son_id = 1;
+			octree[0].brick_id = HALF_VOXEL;
 			// Build the octree from the ground up
 			{
 				
@@ -175,6 +194,8 @@ namespace Gigavoxel {
 					}
 				}
 			}
+
+			std::cout << octree[0].brick_id << " " << octree[0].son_id <<std::endl;
 
 			// Upload octree to SSBO
 			glGenBuffers(1, &SSBO);

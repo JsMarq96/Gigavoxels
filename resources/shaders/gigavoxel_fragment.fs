@@ -17,7 +17,7 @@ layout(std430, binding = 2) buffer gigavoxel_ssbo {
 };
 
 const float EPSILON = 0.001;
-const uint MAX_ITERATIONS = 20;
+const uint MAX_ITERATIONS = 100;
 
 // HELPER FUNCTIONS ================================================
 void ray_AABB_intersection(in vec3 ray_origin,
@@ -28,7 +28,7 @@ void ray_AABB_intersection(in vec3 ray_origin,
                            out vec3 far_intersection) {
     vec3 box_min = box_origin - (box_size / 2.0);
     vec3 box_max = box_min + box_size;
-    
+
     // Testing X axis slab
     float tx1 = (box_min.x - ray_origin.x) / ray_dir.x;
     float tx2 = (box_max.x - ray_origin.x) / ray_dir.x;
@@ -126,7 +126,7 @@ vec4 iterate_octree(in vec3 ray_origin,
 
     vec3 box_near_intersection = vec3(0.0);
     vec3 box_far_intersection = vec3(0.0);
-    vec3 box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(1.0);
+    vec3 box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
 
     uint curr_octant = 0u;
     sVoxel curr_voxel;
@@ -144,14 +144,15 @@ vec4 iterate_octree(in vec3 ray_origin,
         if (curr_voxel.brick_id == 1u) { // Full voxel
             return vec4(1.0, 0.0, 0.0, 1.0);
         } else if (curr_voxel.brick_id == 0u) { // Empty block
+            //return vec4(0.0, 1.0, 0.0, 1.0);
             // Push the exit point a bit outside the current voxel
             vec3 exit_point = box_far_intersection + (ray_dir * EPSILON);
 
             // Early out
-            if (!is_inside_AABB(exit_point, vec3(0.0), vec3(1.0))) {
+            //if (!is_inside_AABB(exit_point, vec3(0.0), vec3(1.0))) {
                 // it is outside of the main bounding box
-                return vec4(0.0, 0.0, 1.0, 1.0);
-            }
+            //    return vec4(0.0, 0.0, 1.0, 1.0);
+            //}
 
             // Find the parent that fits the point 
             history_index = unroll_the_tree(exit_point, 
@@ -165,7 +166,8 @@ vec4 iterate_octree(in vec3 ray_origin,
             // Get octant of the point
             curr_octant = get_octant_index_of_pos(exit_point,
                                                   box_origin);
-        } else { // Mixed voxel
+        } 
+        else { // Mixed voxel
             // Compute intersaction with the current box
             ray_AABB_intersection(it_ray_pos, 
                                   ray_dir, 

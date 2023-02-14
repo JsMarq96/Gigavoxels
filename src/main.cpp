@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <stdint.h>
 
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -181,6 +182,20 @@ void draw_loop(GLFWwindow *window) {
 
 	sMaterial cube_material;
 
+	// Test values
+	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 256*256*256);
+	memset(text_data, 0, sizeof(uint8_t) * 256*256*256);
+	for(uint32_t y = 0; y < 256; y++) {
+		for(uint32_t x = 0; x < 64; x++) {
+			for(uint32_t z = 0; z < 64; z++) {
+				text_data[x + z * 256 + y * (256*256)] = 255;
+			}
+		}
+	}
+
+	sTexture test_text = {};
+	load_raw_3D_texture(&test_text, text_data, 256, 256, 256);
+
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	cube_renderer.material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
@@ -211,7 +226,8 @@ void draw_loop(GLFWwindow *window) {
 
 	
 	Gigavoxel::sOctree octree = {};
-	octree.compute_octree(volume_tex_dir, 256, 256, 256);
+	octree.compute_octree(test_text, 256, 256, 256);
+	//octree.compute_octree_from_adress(volume_tex_dir, 256, 256, 256);
 
 	cube_renderer.material.add_SSBO(2, octree.SSBO);
 
