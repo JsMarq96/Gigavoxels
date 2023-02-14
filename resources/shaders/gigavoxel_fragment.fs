@@ -1,6 +1,7 @@
 #version 440
 
 in vec3 v_local_position;
+in vec3 v_world_position;
 
 layout(location = 0) out vec4 o_frag_color;
 
@@ -16,7 +17,7 @@ layout(std430, binding = 2) buffer gigavoxel_ssbo {
 };
 
 const float EPSILON = 0.001;
-const uint MAX_ITERATIONS = 200;
+const uint MAX_ITERATIONS = 20;
 
 // HELPER FUNCTIONS ================================================
 void ray_AABB_intersection(in vec3 ray_origin,
@@ -25,9 +26,9 @@ void ray_AABB_intersection(in vec3 ray_origin,
                            in vec3 box_size,
                            out vec3 near_intersection,
                            out vec3 far_intersection) {
-    vec3 box_min = box_origin;
-    vec3 box_max = box_origin + box_size;
-
+    vec3 box_min = box_origin - (box_size / 2.0);
+    vec3 box_max = box_min + box_size;
+    
     // Testing X axis slab
     float tx1 = (box_min.x - ray_origin.x) / ray_dir.x;
     float tx2 = (box_max.x - ray_origin.x) / ray_dir.x;
@@ -39,10 +40,10 @@ void ray_AABB_intersection(in vec3 ray_origin,
     float ty2 = (box_max.y - ray_origin.y) / ray_dir.y;
     tmin = max(min(ty1, ty2), tmin);
     tmax = min(max(ty1, ty2), tmax);
+
     // Testing Z axis slab
     float tz1 = (box_min.z - ray_origin.z) / ray_dir.z;
     float tz2 = (box_max.z - ray_origin.z) / ray_dir.z;
-
     tmin = max(min(tz1, tz2), tmin);
     tmax = min(max(tz1, tz2), tmax);
 
@@ -149,7 +150,7 @@ vec4 iterate_octree(in vec3 ray_origin,
             // Early out
             if (!is_inside_AABB(exit_point, vec3(0.0), vec3(1.0))) {
                 // it is outside of the main bounding box
-                return vec4(0.0, 0.0, 0.5, 1.0);
+                return vec4(0.0, 0.0, 1.0, 1.0);
             }
 
             // Find the parent that fits the point 
@@ -190,14 +191,14 @@ vec4 iterate_octree(in vec3 ray_origin,
 
 void main() {
     vec3 ray_origin = u_camera_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
-    vec3 ray_dir = normalize(v_local_position - ray_origin);
-    vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(1.0);
+    vec3 ray_dir = normalize(v_world_position - ray_origin);
+    vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
 
     o_frag_color = iterate_octree(ray_origin, ray_dir);
 
-    ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
+    //ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
+    //uint index = get_octant_index_of_pos(near, box_origin);
 
-    uint index = get_octant_index_of_pos(near, box_origin);
-
-    //o_frag_color = vec4(vec3(index)/8.0,1.0);//u_color;
+    //o_frag_color = vec4(vec3(index/8.0), 1.0);//u_color;
+    //o_frag_color = vec4(near, 1.0);//u_color;
 }

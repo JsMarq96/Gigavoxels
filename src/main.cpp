@@ -201,6 +201,7 @@ void draw_loop(GLFWwindow *window) {
 	//obj_model.set_scale({1.0f, 1.0f, 1.f});
 
 	float camera_angle = 0.01f;
+	float camera_height = 5.5f;
 
 #ifdef _WIN32
 	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
@@ -249,9 +250,10 @@ void draw_loop(GLFWwindow *window) {
 
 		// Rotate the camera arround
 		ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 2.0f * PI);
+		ImGui::SliderFloat("Camera height", &camera_height, -5.0f, 10.0f);
 
 		// Config scene
-		glm::vec3 camera_original_position = rotate_point(glm::vec3{5.0f, 5.60f, 5.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
+		glm::vec3 camera_original_position = rotate_point(glm::vec3{5.0f, camera_height, 5.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 

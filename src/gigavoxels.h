@@ -111,10 +111,9 @@ namespace Gigavoxel {
 			}
 
 			// Build the octree from the ground up
-			// algo raro
 			{
 				
-				for(uint32_t level = octree_layer_count; level > 0; level--) {
+				for(uint32_t level = octree_layer_count-1; level > 0; level--) {
 					// Level starts
 					uint32_t curr_level_start = octree_level_start[level];
 					uint32_t prev_level_start = octree_level_start[level+1];
@@ -123,6 +122,7 @@ namespace Gigavoxel {
 					uint32_t level_size = octree_level_sizes[level];
 					uint32_t level_size_pow_2 = level_size * level_size; // size^2
 					uint32_t level_size_pow_3 = level_size_pow_2 * level_size; // size^3
+
 					uint32_t prev_level_size = octree_level_sizes[level+1];
 					uint32_t prev_level_size_pow_2 = prev_level_size * prev_level_size; // size^2
 
@@ -176,7 +176,6 @@ namespace Gigavoxel {
 				}
 			}
 
-			std::cout << octree[1].brick_id << " " << octree[2].brick_id << std::endl;
 			// Upload octree to SSBO
 			glGenBuffers(1, &SSBO);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
