@@ -195,7 +195,7 @@ namespace Gigavoxel {
 				}
 			}
 
-			std::cout << octree[0].brick_id << " " << octree[0].son_id <<std::endl;
+			//std::cout << octree[0].brick_id << " " << octree[0].son_id <<std::endl;
 
 			// Upload octree to SSBO
 			glGenBuffers(1, &SSBO);

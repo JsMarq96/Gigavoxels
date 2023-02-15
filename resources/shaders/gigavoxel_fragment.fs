@@ -93,6 +93,9 @@ uint get_octant_index_of_pos(in vec3 pos,
     return index;*/
 }
 
+// TODO: CORRECT OCTANT
+vec3 octant_center_LUT[8] = {};
+
 
 // ITERATION & RENDERING FUNCTIONS =============================================
 
@@ -144,6 +147,9 @@ vec4 iterate_octree(in vec3 ray_origin,
         if (curr_voxel.brick_id == 1u) { // Full voxel
             return vec4(1.0, 0.0, 0.0, 1.0);
         } else if (curr_voxel.brick_id == 0u) { // Empty block
+            if (curr_voxel.son_id == 0) {
+                return vec4(0.0, 0.0, 0.0, 1.0);
+            }
             //return vec4(0.0, 1.0, 0.0, 1.0);
             // Push the exit point a bit outside the current voxel
             vec3 exit_point = box_far_intersection + (ray_dir * EPSILON);
@@ -168,6 +174,9 @@ vec4 iterate_octree(in vec3 ray_origin,
                                                   box_origin);
         } 
         else { // Mixed voxel
+            if (curr_voxel.son_id == 0) {
+                return vec4(0.0, 0.50, 0.0, 1.0);
+            }
             // Compute intersaction with the current box
             ray_AABB_intersection(it_ray_pos, 
                                   ray_dir, 
