@@ -23,6 +23,7 @@ enum eTextureType : int {
     NORMAL_MAP,
     SPECULAR_MAP,
     METALLIC_ROUGHNESS_MAP,
+    VOLUME_MAP,
     TEXTURE_TYPE_COUNT
 };
 
@@ -30,7 +31,8 @@ const char texture_uniform_LUT[TEXTURE_TYPE_COUNT][25] = {
    "u_albedo_map",
    "u_normal_map",
    "u_metallic_rough_map",
-   "u_metallic_rough_map"
+   "u_metallic_rough_map",
+   "u_volume_map",
 };
 
 struct sDataSSBO {

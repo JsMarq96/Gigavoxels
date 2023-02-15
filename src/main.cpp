@@ -188,7 +188,7 @@ void draw_loop(GLFWwindow *window) {
 	for(uint32_t y = 0; y < 256; y++) {
 		for(uint32_t x = 0; x < 64; x++) {
 			for(uint32_t z = 0; z < 64; z++) {
-				text_data[x + z * 256 + y * (256*256)] = 255;
+				text_data[x + y * 256 + z * (256*256)] = 255;
 			}
 		}
 	}
@@ -196,14 +196,21 @@ void draw_loop(GLFWwindow *window) {
 	sTexture test_text = {};
 	load_raw_3D_texture(&test_text, text_data, 256, 256, 256);
 
+	sMaterial octree_material;
+	sMaterial raymarching_material;
+
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
-	cube_renderer.material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
+	octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
+	raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
+
+	raymarching_material.textures[VOLUME_MAP] = test_text;
+	raymarching_material.enabled_textures[VOLUME_MAP] = true;
 
 
 	double prev_frame_time = glfwGetTime();
@@ -229,7 +236,9 @@ void draw_loop(GLFWwindow *window) {
 	octree.compute_octree(test_text, 256, 256, 256);
 	//octree.compute_octree_from_adress(volume_tex_dir, 256, 256, 256);
 
-	cube_renderer.material.add_SSBO(2, octree.SSBO);
+	octree_material.add_SSBO(2, octree.SSBO);
+
+	bool raymarch_or_octree = false;
 
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
@@ -267,11 +276,18 @@ void draw_loop(GLFWwindow *window) {
 		// Rotate the camera arround
 		ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 2.0f * PI);
 		ImGui::SliderFloat("Camera height", &camera_height, -5.0f, 10.0f);
+		ImGui::Checkbox("Raymarching", &raymarch_or_octree);
 
 		// Config scene
 		glm::vec3 camera_original_position = rotate_point(glm::vec3{5.0f, camera_height, 5.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
+
+		if (raymarch_or_octree) {
+			cube_renderer.material = raymarching_material;
+		} else {
+			cube_renderer.material = octree_material;
+		}
 
 		cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 

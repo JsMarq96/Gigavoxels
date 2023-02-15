@@ -82,7 +82,7 @@ void sMaterial::enable() const {
             continue;
         }
         glActiveTexture(GL_TEXTURE0 + texture);
-        glBindTexture(GL_TEXTURE_2D, textures[texture].texture_id);
+        glBindTexture((texture != VOLUME_MAP) ? GL_TEXTURE_2D : GL_TEXTURE_3D, textures[texture].texture_id);
 
         shader.set_uniform_texture(texture_uniform_LUT[texture], texture);
     }
