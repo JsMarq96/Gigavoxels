@@ -198,6 +198,14 @@ void draw_loop(GLFWwindow *window) {
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
+	for(uint32_t z = 0; z < 2; z++) {
+		for(uint32_t y = 0; y < 2; y++) {
+			for(uint32_t x = 0; x < 2; x++) {
+				
+					std::cout << x + y * 2 + z * (4) << ": " << x << ", "<< y << ", "<< z << ", " <<std::endl;
+				}
+			}
+	}
 
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));

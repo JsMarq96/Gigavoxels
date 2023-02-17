@@ -195,6 +195,16 @@ namespace Gigavoxel {
 				}
 			}
 
+			// Debugging
+			octree[1].brick_id = 0;
+			octree[2].brick_id = 0;
+			octree[3].brick_id = 0;
+			octree[4].brick_id = 0;
+			octree[5].brick_id = 0;
+			octree[6].brick_id = 0;
+			octree[7].brick_id = 0;
+			octree[8].brick_id = 1;
+
 			//std::cout << octree[0].brick_id << " " << octree[0].son_id <<std::endl;
 
 			// Upload octree to SSBO
