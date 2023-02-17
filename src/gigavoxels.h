@@ -66,6 +66,8 @@ namespace Gigavoxel {
 			// Compute the histopyramid
 			pyramid.compute(volume, 0.20f);
 
+			std::cout << "COUNT: " << pyramid.pyramids[0] << " == " << 128 * 128 * 128<< std::endl;
+
 			const uint32_t base_16_level_count = 4;
 			// The size of the octree is the size of the pyramid, but without thelast 4 levels
 			const uint32_t octree_layer_count = pyramid.num_of_layers - base_16_level_count;
@@ -196,16 +198,14 @@ namespace Gigavoxel {
 			}
 
 			// Debugging
-			octree[1].brick_id = 0;
-			octree[2].brick_id = 0;
+			/*octree[1].brick_id = 1;
+			octree[2].brick_id = 1;
 			octree[3].brick_id = 0;
 			octree[4].brick_id = 0;
 			octree[5].brick_id = 0;
 			octree[6].brick_id = 0;
 			octree[7].brick_id = 0;
-			octree[8].brick_id = 1;
-
-			//std::cout << octree[0].brick_id << " " << octree[0].son_id <<std::endl;
+			octree[8].brick_id = 1;*/
 
 			// Upload octree to SSBO
 			glGenBuffers(1, &SSBO);
