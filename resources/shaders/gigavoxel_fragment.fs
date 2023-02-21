@@ -19,6 +19,8 @@ layout(std430, binding = 2) buffer gigavoxel_ssbo {
 const float EPSILON = 0.001;
 const uint MAX_ITERATIONS = 10u;
 
+vec3 center_history[MAX_ITERATIONS];
+
 // HELPER FUNCTIONS ================================================
 void ray_AABB_intersection(in vec3 ray_origin,
                            in vec3 ray_dir,
@@ -80,9 +82,9 @@ uint get_octant_index_of_pos(in vec3 pos,
     const vec3 relative_pos = normalize(pos - center);// * 0.5 + vec3(1.0);
 
     const vec3 indices = vec3(1.0, 2.0, 4.0);
-    uvec3 comp = uvec3(step(relative_pos, vec3(EPSILON)) * indices);
+    uvec3 comp = uvec3(step(relative_pos, vec3(0.0)) * indices);
 
-    relative_octant = step(relative_pos, vec3(0.0)) * 2.0 - vec3(1.0);
+    relative_octant = (step(relative_pos, vec3(0.0)) * 2.0 - vec3(1.0));
     //relative_octant = relative_pos;
 
     return comp.x + comp.y + comp.z;
@@ -111,7 +113,6 @@ uint get_octant_index_of_pos(in vec3 pos,
 // that contains the current point
 uint unroll_the_tree(in vec3 point,
                      in uint current_index, 
-                     in vec3 center_history[MAX_ITERATIONS],
                      inout vec3 box_center,
                      inout vec3 box_size) {
     for(uint it_index = current_index-2; it_index >= 0; it_index--) {
@@ -126,7 +127,7 @@ uint unroll_the_tree(in vec3 point,
     }
 
     // This case should never be reached
-    return current_index;
+    return 0;
 }
 
 // Get a color, given an origin
@@ -142,7 +143,6 @@ vec4 iterate_octree(in vec3 ray_origin,
     uint curr_octant = 0u;
     sVoxel curr_voxel;
     uint iterations_history[MAX_ITERATIONS];
-    vec3 center_history[MAX_ITERATIONS];
     uint history_index = 0u;
 
     for(uint i = 0u; i < MAX_ITERATIONS; i++) {
@@ -153,6 +153,7 @@ vec4 iterate_octree(in vec3 ray_origin,
         history_index++;
 
         if (curr_voxel.brick_id == 1u || curr_voxel.son_id == 0u) { // Full voxel or leaf: early out
+            //return vec4(1.0, 0.50, 1.0, 1.0);
             break;
         } 
 
@@ -168,28 +169,28 @@ vec4 iterate_octree(in vec3 ray_origin,
         if (curr_voxel.brick_id == 0u) { // Empty block
             // Push the exit point a bit outside the current voxel
             vec3 exit_point = box_far_intersection + (ray_dir * EPSILON);
-
+            //return vec4(exit_point, 1.0);
+            
+            // Early out
+            if (!is_inside_AABB(exit_point, vec3(0.0), vec3(2.0))) {
+                // it is outside of the main bounding box
+                return vec4(0.0, 0.50, 0.0, 1.0);
+                break;
+            }
             // Find the parent that fits the point 
             history_index = unroll_the_tree(exit_point, 
                                             history_index, 
-                                            center_history, 
                                             box_origin, 
                                             box_size);
 
-            // Early out
-            if (!is_inside_AABB(exit_point, vec3(0.0), vec3(2.0 - EPSILON))) {
-                // it is outside of the main bounding box
-                break;
-            }
-
             // Continue from the found point
             it_octree_index = iterations_history[history_index];
-            
+
             // Get octant of the point
             vec3 relative_octant_center;
             curr_octant = get_octant_index_of_pos(exit_point,
-                                                  box_origin, 
-                                                  relative_octant_center);
+                                                 box_origin, 
+                                                 relative_octant_center);
         } else { // Mixed voxel
             // Get the octant of the near voxel intersection  & get the son's position
             vec3 relative_octant_center;
@@ -210,9 +211,10 @@ vec4 iterate_octree(in vec3 ray_origin,
     if (curr_voxel.brick_id == 0u) {
         return vec4(0.0, 0.0, 0.0, 1.0);
     } else if (curr_voxel.brick_id == 2u) {
+        //return vec4(vec3(curr_octant/ 8.0), 1.0); 
         return vec4(0.0, 0.50, 0.0, 1.0);
     }
-    return vec4(1.0, 0.0, 0.0, 1.0);
+    return vec4(1.0, 0.00, 0.0, 1.0);
 }
 
 vec4 iterate_test(in vec3 ray_origin, 
@@ -267,18 +269,13 @@ void main() {
     vec3 r;
     uint index = get_octant_index_of_pos(near, box_origin, r);
     return;
+    box_size = box_size * vec3(0.5);
+    box_origin = box_origin - (r * (box_size * 0.5));
 
-    //box_size = box_size * vec3(0.5);
-    //box_origin = box_origin - (r * (box_size * 0.5));
+    ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
 
-    //ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
-
-    //index = get_octant_index_of_pos(near, box_origin, r);
-    vec3 point = far + (ray_dir * 1.2);
-    if (is_inside_AABB(point, vec3(0.0, 0.0, 0.0), vec3(2.0))) {
-        o_frag_color = vec4( 1.0);
-    } else {
-         o_frag_color = vec4(0.0);
-    }
+    index = get_octant_index_of_pos(near, box_origin, r);
+    o_frag_color = vec4(vec3(index/8.0), 1.0);
+    //o_frag_color = vec4(r, 1.0);
     //o_frag_color = vec4(ray_dir*0.5 + 1.0, 1.0);//u_color;
 }
