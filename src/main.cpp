@@ -208,6 +208,8 @@ void draw_loop(GLFWwindow *window) {
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
+	raymarching_material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/mmar.fs"));
+	rrma_raymarching_material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/raymarching_fragment.fs"));
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
 
@@ -227,12 +229,12 @@ void draw_loop(GLFWwindow *window) {
 #ifdef _WIN32
 	const char* volume_tex_dir = get_path("..\\resources\\volumens\\bonsai_256x256x256_uint8.raw");
 #else
-	const char* volume_tex_dir = "resources/bonsai_256x256x256_uint8.raw";
+	const char* volume_tex_dir = "resources/volumens/bonsai_256x256x256_uint8.raw";
 #endif
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
-	//load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
+	//load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
+	load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
 	raymarching_material.textures[VOLUME_MAP] = test_text;
 	raymarching_material.enabled_textures[VOLUME_MAP] = true;
 

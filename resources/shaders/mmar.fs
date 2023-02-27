@@ -13,7 +13,7 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 150;
+const int MAX_ITERATIONS = 25;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
 const float DELTA = 0.003;
@@ -107,7 +107,7 @@ vec3 mrm() {
     vec3 it_pos = pos + ray_dir * 0.001;
 
     // MRM
-    uint curr_mipmap_level = 8;
+    uint curr_mipmap_level = 5;
     float dist = 0.001; // Distance from start to sampling point
     const float MAX_DIST = 15.0; // Note, should be the max travel distance of teh ray
     float prev_dist = 0.0;
@@ -115,24 +115,26 @@ vec3 mrm() {
 
     vec3 curr_aabb_origin, curr_aabb_size;
     vec3 near, far;
-    uint i = 0;
 
     ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
     float dist_max = length(near - far);
 
+    uint i = 0;
     for(; i < MAX_ITERATIONS; i++) {
         vec3 sample_pos = pos + (dist * ray_dir); 
         // Early out, can be skippd
 
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
-        if (depth > 0.0) { // There is a block
+        if (depth > 0.05) { // There is a block
+            //return vec3(1.0, 0.0, 0.0);
             if (curr_mipmap_level == 0) {
                 return vec3(1.0);
             }
+            return vec3(1.0, 0.0, 0.0);
             curr_mipmap_level--;
             // compute the AABB
             get_voxel_of_point_in_level(sample_pos, 
-                                        7 - curr_mipmap_level,
+                                        curr_mipmap_level,
                                         curr_aabb_origin,
                                         curr_aabb_size);
 
@@ -193,5 +195,5 @@ void main() {
    ray_AABB_intersection(ray_origin, ray_dir,  origin, size, near, far);
 
    o_frag_color = vec4(vec3(near), 1.0);
-   //o_frag_color = vec4(mrm(), 1.0);   
+   o_frag_color = vec4(mrm(), 1.0);   
 }

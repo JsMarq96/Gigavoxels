@@ -63,7 +63,7 @@ void sShader::load_file_graphic_shaders(const char*     v_shader_dir,
     vert_file = fopen(v_shader_dir, "r");
     frag_file = fopen(f_shader_dir, "r");
 
-
+    std::cout << v_shader_dir << std::endl;
     assert(vert_file != NULL && "Failed to open file vertex shader on gameobject"); // Load the vertex shader
     assert(frag_file != NULL && "Failed to open file fragment shader on gameobject");
 

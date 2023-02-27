@@ -13,7 +13,7 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 150;
+const int MAX_ITERATIONS = 50;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
 const float DELTA = 0.003;
@@ -44,7 +44,7 @@ vec4 render_volume() {
         }
         
         float depth = texture(u_volume_map, it_pos /2.0 + 0.5).r;
-        if (0.001 <= depth) {
+        if (0.05 <= depth) {
             return vec4( 1.0);
             return vec4(gradient(it_pos), 1.0);
       }
