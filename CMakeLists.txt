@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-SET(CMAKE_CXX_FLAGS  "-g")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(GL_GLFW_TEMPLATE)

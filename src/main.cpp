@@ -184,18 +184,18 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial cube_material;
 
 	// Test values
-	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 256*256*256);
-	memset(text_data, 0, sizeof(uint8_t) * 256*256*256);
+	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
+	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
 	for(uint32_t y = 0; y < 64; y++) {
 		for(uint32_t x = 0; x < 64; x++) {
 			for(uint32_t z = 0; z < 64; z++) {
-				text_data[x + y * 256 + z * (256*256)] = 255;
+				text_data[x + y * 128 + z * (128*128)] = 255;
 			}
 		}
 	}
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 256, 256, 256);
+	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
@@ -234,7 +234,7 @@ void draw_loop(GLFWwindow *window) {
 
 	
 	Gigavoxel::sOctree octree = {};
-	octree.compute_octree(test_text, 256, 256, 256);
+	octree.compute_octree(test_text, 128, 128, 128);
 	//octree.compute_octree_from_adress(volume_tex_dir, 256, 256, 256);
 
 	octree_material.add_SSBO(2, octree.SSBO);

@@ -145,7 +145,8 @@ vec4 iterate_octree(in vec3 ray_origin,
     uint iterations_history[MAX_ITERATIONS];
     uint history_index = 0u;
 
-    for(uint i = 0u; i < MAX_ITERATIONS; i++) {
+    uint i = 0u;
+    for(; i < MAX_ITERATIONS; i++) {
         // Store an history of indeces in order to unroll the tree
         curr_voxel = voxels[it_octree_index];
         iterations_history[history_index] = it_octree_index;
@@ -174,6 +175,7 @@ vec4 iterate_octree(in vec3 ray_origin,
             // Early out
             if (!is_inside_AABB(exit_point, vec3(0.0), vec3(2.0))) {
                 // it is outside of the main bounding box
+                return vec4(vec3(i  / 6.0), 1.0);
                 return vec4(0.0, 0.50, 0.0, 1.0);
                 break;
             }
@@ -207,6 +209,7 @@ vec4 iterate_octree(in vec3 ray_origin,
         it_octree_index = voxels[it_octree_index + curr_octant].son_id;
     }
 
+    return vec4(vec3(i  / 6.0), 1.0);
     //return vec4(vec3(history_index/10.0), 1.0);
     if (curr_voxel.brick_id == 0u) {
         return vec4(0.0, 0.0, 0.0, 1.0);
