@@ -194,25 +194,22 @@ void draw_loop(GLFWwindow *window) {
 		}
 	}
 
-	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
+	
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
+	sMaterial rrma_raymarching_material;
 
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
 	raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\mmar.fs"));
-	//raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
+	rrma_raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
-
-	raymarching_material.textures[VOLUME_MAP] = test_text;
-	raymarching_material.enabled_textures[VOLUME_MAP] = true;
 
 
 	double prev_frame_time = glfwGetTime();
@@ -228,12 +225,19 @@ void draw_loop(GLFWwindow *window) {
 	float camera_height = 5.5f;
 
 #ifdef _WIN32
-	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
+	const char* volume_tex_dir = get_path("..\\resources\\volumens\\bonsai_256x256x256_uint8.raw");
 #else
 	const char* volume_tex_dir = "resources/bonsai_256x256x256_uint8.raw";
 #endif
 
-	
+	sTexture test_text = {};
+	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
+	//load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
+	raymarching_material.textures[VOLUME_MAP] = test_text;
+	raymarching_material.enabled_textures[VOLUME_MAP] = true;
+
+	rrma_raymarching_material.textures[VOLUME_MAP] = test_text;
+	rrma_raymarching_material.enabled_textures[VOLUME_MAP] = true;
 	
 
 	//octree_material.add_SSBO(2, octree.SSBO);
@@ -284,7 +288,12 @@ void draw_loop(GLFWwindow *window) {
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
-		cube_renderer.material = raymarching_material;
+		if (raymarch_or_octree) {
+			cube_renderer.material = raymarching_material;
+		} else {
+			cube_renderer.material = rrma_raymarching_material;
+		}
+		
 
 		cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 

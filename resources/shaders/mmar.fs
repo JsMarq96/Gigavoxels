@@ -13,7 +13,7 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 500;
+const int MAX_ITERATIONS = 150;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
 const float DELTA = 0.003;
@@ -104,39 +104,43 @@ vec3 mrm() {
     // Raymarching conf
     vec3 pos = v_world_position;
     vec3 ray_dir = normalize(pos - u_camera_position);
-    vec3 it_pos = pos - ray_dir * 0.001;
+    vec3 it_pos = pos + ray_dir * 0.001;
 
     // MRM
-    uint curr_mipmap_level = 7;
+    uint curr_mipmap_level = 8;
     float dist = 0.001; // Distance from start to sampling point
     const float MAX_DIST = 15.0; // Note, should be the max travel distance of teh ray
     float prev_dist = 0.0;
-    vec3 prev_sample_pos = it_pos;
+    vec3 prev_sample_pos = pos;
 
     vec3 curr_aabb_origin, curr_aabb_size;
     vec3 near, far;
+    uint i = 0;
 
-    for(uint i = 0; i < MAX_ITERATIONS; i++) {
-        vec3 sample_pos = it_pos + (dist * ray_dir); 
+    ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
+    float dist_max = length(near - far);
+
+    for(; i < MAX_ITERATIONS; i++) {
+        vec3 sample_pos = pos + (dist * ray_dir); 
         // Early out, can be skippd
 
-        float depth = textureLod(u_volume_map, sample_pos /2.0 + 0.5, curr_mipmap_level).r;
-        if (depth > 0.01) { // There is a block
+        float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
+        if (depth > 0.0) { // There is a block
             if (curr_mipmap_level == 0) {
                 return vec3(1.0);
             }
             curr_mipmap_level--;
             // compute the AABB
             get_voxel_of_point_in_level(sample_pos, 
-                                        curr_mipmap_level,
+                                        7 - curr_mipmap_level,
                                         curr_aabb_origin,
                                         curr_aabb_size);
 
             // Intersect the ray with the AABB
-            ray_AABB_intersection(it_pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
+            ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
 
             // Get near pos
-            dist = max(length(it_pos - near) + 0.0001, 0.001);
+            dist = max(length(near - pos) + 0.0001, 0.005);
         } else { // Ray is unblocked
             if (prev_dist < dist && !in_the_same_area(sample_pos, prev_sample_pos, curr_mipmap_level+1)) {
                 curr_mipmap_level++;
@@ -149,6 +153,7 @@ vec3 mrm() {
         prev_sample_pos = sample_pos;
     }
 
+    //return vec3(i / MAX_ITERATIONS);
     return vec3(0.0);
 }
 
@@ -182,12 +187,11 @@ void main() {
    //o_frag_color = render_volume(); //*
    vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
 
-   ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
    vec3 origin, size;
-   get_voxel_of_point_in_level(near, 4.0, origin, size);
+   get_voxel_of_point_in_level(v_world_position, 4.0, origin, size);
 
    ray_AABB_intersection(ray_origin, ray_dir,  origin, size, near, far);
 
-   //o_frag_color = vec4(vec3(get_size_of_miplevel(3.0) - 4.0), 1.0);
-   o_frag_color = vec4(mrm(), 1.0);   
+   o_frag_color = vec4(vec3(near), 1.0);
+   //o_frag_color = vec4(mrm(), 1.0);   
 }
