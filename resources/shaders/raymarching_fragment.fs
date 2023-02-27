@@ -30,7 +30,7 @@ vec3 gradient(in vec3 pos) {
 }
 
 vec4 render_volume() {
-    vec3 pos = v_world_position /2 + 0.5;
+    vec3 pos = v_world_position;
     vec3 ray_dir = normalize(pos - u_camera_position);
     vec3 it_pos = pos - ray_dir * 0.001;
     // Add jitter
@@ -43,7 +43,7 @@ vec4 render_volume() {
             break;
         }
         
-        float depth = texture(u_volume_map, it_pos).r;
+        float depth = texture(u_volume_map, it_pos /2.0 + 0.5).r;
         if (0.25 <= depth) {
             return vec4( 1.0);
             return vec4(gradient(it_pos), 1.0);
