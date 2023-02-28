@@ -58,7 +58,7 @@ bool in_the_same_area(in vec3 p1, in vec3 p2, in float mip_level) {
 }
 
 float get_distance(in float level) {
-    return pow(2.0, level) * SMALLEST_VOXEL * 0.75;
+    return pow(2.0, level) * SMALLEST_VOXEL * 0.1;
 }
 
 void ray_AABB_intersection(in vec3 ray_origin,
@@ -107,7 +107,7 @@ vec3 mrm() {
     vec3 it_pos = pos + ray_dir * 0.001;
 
     // MRM
-    uint curr_mipmap_level = 5;
+    uint curr_mipmap_level = 7;
     float dist = 0.001; // Distance from start to sampling point
     const float MAX_DIST = 15.0; // Note, should be the max travel distance of teh ray
     float prev_dist = 0.0;
@@ -130,11 +130,11 @@ vec3 mrm() {
             if (curr_mipmap_level == 0) {
                 return vec3(1.0);
             }
-            return vec3(1.0, 0.0, 0.0);
+            //return vec3(1.0, 0.0, 0.0);
             curr_mipmap_level--;
             // compute the AABB
             get_voxel_of_point_in_level(sample_pos, 
-                                        curr_mipmap_level,
+                                        7 - curr_mipmap_level,
                                         curr_aabb_origin,
                                         curr_aabb_size);
 
@@ -142,13 +142,11 @@ vec3 mrm() {
             ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
 
             // Get near pos
-            dist = max(length(near - pos) + 0.0001, 0.005);
+            //dist = max(length(near - pos), 0.005);
+            dist = prev_dist;
+            sample_pos = prev_sample_pos;
         } else { // Ray is unblocked
-            if (prev_dist < dist && !in_the_same_area(sample_pos, prev_sample_pos, curr_mipmap_level+1)) {
-                curr_mipmap_level++;
-            } else {
-                dist += get_distance(curr_mipmap_level);
-            }
+            dist += get_distance(curr_mipmap_level);
         }
 
         prev_dist = dist;
