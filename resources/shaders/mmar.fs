@@ -30,20 +30,28 @@ vec3 gradient(in vec3 pos) {
     return normalize(vec3(x, y, z) / vec3(DELTA * 2.0));
 }
 
+vec3 get_int(in vec3 f) {
+    return vec3(ivec3(f));
+}
+
+float get_int(in float f) {
+    return float(int(f));
+}
+
 float get_level_of_size(float size) {
     return 1 + log2(size);
 }
 float get_size_of_miplevel(float level) {
-    return round(pow(2.0, level - 1.0));
+    return get_int(pow(2.0, level - 1.0));
 }
 
 void get_voxel_of_point_in_level(in vec3 point, in float mip_level, out vec3 origin, out vec3 size) {
     float voxel_count_side = get_size_of_miplevel(mip_level);
-    vec3 voxel_size = vec3(2.0 / voxel_count_side); // The cube is sized 2,2,2 in world coords
+    vec3 voxel_size = vec3(2.0 / (voxel_count_side)); // The cube is sized 2,2,2 in world coords
     
-    vec3 start_coords = round((point + (voxel_size / 2.0)) / voxel_size) * voxel_size;
+    vec3 start_coords = get_int(point / voxel_size) * voxel_size;
 
-    origin = start_coords - voxel_size * 0.5;
+    origin = start_coords + voxel_size * 0.5;
     size = voxel_size;
 }
 
@@ -60,14 +68,15 @@ bool in_the_same_area(in vec3 p1, in vec3 p2, in float mip_level) {
 float get_distance(in float level) {
     return pow(2.0, level) * SMALLEST_VOXEL * 0.1;
 }
-
+//tmin = max(tmin, min(min(t1, t2), tmax));
+//tmax = min(tmax, max(max(t1, t2), tmin));
 void ray_AABB_intersection(in vec3 ray_origin,
                            in vec3 ray_dir,
                            in vec3 box_origin,
                            in vec3 box_size,
                            out vec3 near_intersection,
                            out vec3 far_intersection) {
-    vec3 box_min = box_origin - (box_size / 2.0);
+    vec3 box_min = box_origin;
     vec3 box_max = box_min + box_size;
 
     // Testing X axis slab
@@ -79,14 +88,14 @@ void ray_AABB_intersection(in vec3 ray_origin,
     // Testing Y axis slab
     float ty1 = (box_min.y - ray_origin.y) / ray_dir.y;
     float ty2 = (box_max.y - ray_origin.y) / ray_dir.y;
-    tmin = max(min(ty1, ty2), tmin);
-    tmax = min(max(ty1, ty2), tmax);
+    tmin = max(tmin, min(min(ty1, ty2), tmax));
+    tmax = min(tmax, max(max(ty1, ty2), tmin));
 
     // Testing Z axis slab
     float tz1 = (box_min.z - ray_origin.z) / ray_dir.z;
     float tz2 = (box_max.z - ray_origin.z) / ray_dir.z;
-    tmin = max(min(tz1, tz2), tmin);
-    tmax = min(max(tz1, tz2), tmax);
+    tmin = max(tmin, min(min(tz1, tz2), tmax));
+    tmax = min(tmax, max(max(tz1, tz2), tmin));
 
     near_intersection = ray_dir * tmin + ray_origin;
     far_intersection = ray_dir * tmax + ray_origin;
@@ -98,6 +107,30 @@ void ray_AABB_intersection(in vec3 ray_origin,
         far_intersection = ray_dir * tmin + ray_origin;
     }*/
    
+}
+
+void ray_AABB_intersection_v2(in vec3 ray_origin,
+                           in vec3 ray_dir,
+                           in vec3 box_origin,
+                           in vec3 box_size,
+                           out vec3 near_intersection,
+                           out vec3 far_intersection) {
+    vec3 tmax = vec3(0.0), tmin = vec3(10000.0);
+    vec3 box_min = box_origin - (box_size / 2.0);
+    vec3 box_max = box_min + box_size;
+    vec3 inv_dir = 1.0 / ray_dir;
+
+    vec3 t1 = (box_min - ray_origin) * -ray_dir;
+    vec3 t2 = (box_max - ray_origin) * -ray_dir;
+
+    tmin = min(max(t1, tmin), max(t2, tmin));
+    tmax = max(min(t1, tmax), min(t2, tmax));
+
+    float min_val = min(min(tmin.x, tmin.y), tmin.z);
+    float max_val = max(max(tmax.x, tmax.y), tmax.z);
+
+    near_intersection = ray_dir * min_val + ray_origin;
+    far_intersection = ray_dir * max_val + ray_origin;
 }
 
 vec3 mrm() {
@@ -131,22 +164,27 @@ vec3 mrm() {
                 return vec3(1.0);
             }
             //return vec3(1.0, 0.0, 0.0);
-            curr_mipmap_level--;
+            
             // compute the AABB
             get_voxel_of_point_in_level(sample_pos, 
                                         7 - curr_mipmap_level,
                                         curr_aabb_origin,
                                         curr_aabb_size);
-
+            curr_mipmap_level--;
             // Intersect the ray with the AABB
             ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
 
             // Get near pos
-            //dist = max(length(near - pos), 0.005);
-            dist = prev_dist;
-            sample_pos = prev_sample_pos;
+            dist = max(length(pos - near) + 0.001, 0.005);
+            sample_pos = pos + (dist * ray_dir);
+            //dist = prev_dist;
+            //sample_pos = prev_sample_pos;
         } else { // Ray is unblocked
-            dist += get_distance(curr_mipmap_level);
+            if (prev_dist < dist && !in_the_same_area(sample_pos, prev_sample_pos, curr_mipmap_level+1)) {
+                curr_mipmap_level++;
+            } else {
+                dist += get_distance(curr_mipmap_level);
+            }
         }
 
         prev_dist = dist;
@@ -157,29 +195,6 @@ vec3 mrm() {
     return vec3(0.0);
 }
 
-vec4 render_volume() {
-    vec3 pos = v_world_position /2 + 0.5;
-    vec3 ray_dir = normalize(pos - u_camera_position);
-    vec3 it_pos = pos - ray_dir * 0.001;
-    // Add jitter
-    //vec3 jitter_addition = ray_dir * (texture(u_albedo_map, gl_FragCoord.xy / vec2(NOISE_TEX_WIDTH)).rgb * STEP_SIZE);
-    //it_pos = it_pos + jitter_addition;
-    vec4 final_color = vec4(0.0);
-    int i = 0;
-    for(; i < MAX_ITERATIONS; i++) {
-        if (final_color.a >= 0.95) {
-            break;
-        }
-        
-        float depth = texture(u_volume_map, it_pos).r;
-        if (0.25 <= depth) {
-            return vec4( 1.0);
-            return vec4(gradient(it_pos), 1.0);
-      }
-      it_pos = it_pos + (STEP_SIZE * ray_dir);
-   }
-   return vec4(vec3(0.0), 1.0);
-}
 void main() {
     vec3 ray_origin = v_world_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
     vec3 ray_dir = normalize(ray_origin - u_camera_position);
@@ -187,11 +202,15 @@ void main() {
    //o_frag_color = render_volume(); //*
    vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
 
-   vec3 origin, size;
-   get_voxel_of_point_in_level(v_world_position, 4.0, origin, size);
+   vec3 origin, size, pos = ray_origin + ray_dir * 0.001;
+   get_voxel_of_point_in_level(pos, 3.0, origin, size);
 
-   ray_AABB_intersection(ray_origin, ray_dir,  origin, size, near, far);
+   vec3 voxel_size = vec3(2.0 / (4.0)); // The cube is sized 2,2,2 in world coords
+    
+   vec3 start_coords = get_int(pos / voxel_size);
 
-   o_frag_color = vec4(vec3(near), 1.0);
-   o_frag_color = vec4(mrm(), 1.0);   
+   //ray_AABB_intersection(pos, ray_dir, origin, size, near, far);
+
+   o_frag_color = vec4(vec3(start_coords.x) * 0.5 + 0.50, 1.0);
+   //o_frag_color = vec4(mrm(), 1.0);   
 }
