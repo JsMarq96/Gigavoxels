@@ -73,7 +73,7 @@ bool in_the_same_area(in vec3 p1, in vec3 p2, in float mip_level) {
 }
 
 float get_distance(in float level) {
-    return 2.0 / get_size_of_miplevel(level);
+    return 2.0 / get_size_of_miplevel(level) * 0.75;
     return pow(2.0, level - 1.0) * SMALLEST_VOXEL * 0.025;
 }
 //tmin = max(tmin, min(min(t1, t2), tmax));
@@ -170,16 +170,22 @@ vec3 mrm() {
         vec3 sample_pos = pos + (dist * ray_dir); 
         // Early out, can be skippd
 
+         if (!is_inside(prev_voxel_start, prev_voxel_size, sample_pos)) {
+            curr_mipmap_level = curr_mipmap_level + 1.0;
+            // Precaculate sample
+            dist = prev_dist;
+            sample_pos = pos + (dist * ray_dir); 
+            //continue;
+        }
+
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
         if (depth > 0.07) { // There is a block
             //return vec3(1.0, 0.0, 0.0);
             if (curr_mipmap_level == 0.0) {
+                //break;
                 return gradient(sample_pos/ 2.0 + 0.5) * 0.5 + 0.5;
-                break;
-                return sample_pos * 0.5 + 0.5;
-                
-                return vec3(1.0);
             }
+            get_voxel_of_point_in_level(sample_pos, curr_mipmap_level, prev_voxel_start, prev_voxel_size);
             curr_mipmap_level = curr_mipmap_level - 1.0;
             // go back  one step
             dist = prev_dist;
