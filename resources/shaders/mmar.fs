@@ -13,7 +13,7 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 25;
+const int MAX_ITERATIONS = 105;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
 const float DELTA = 0.003;
@@ -46,27 +46,28 @@ float get_size_of_miplevel(float level) {
 }
 
 void get_voxel_of_point_in_level(in vec3 point, in float mip_level, out vec3 origin, out vec3 size) {
-    float voxel_count_side = get_size_of_miplevel(mip_level);
-    vec3 voxel_size = vec3(2.0 / (voxel_count_side)); // The cube is sized 2,2,2 in world coords
-    
-    vec3 start_coords = get_int(point / voxel_size) * voxel_size;
+    float voxel_proportions = 2.0 / get_size_of_miplevel(mip_level);// The cube is sized 2,2,2 in world coords
+    vec3 voxel_size = vec3(voxel_proportions); 
 
-    origin = start_coords + voxel_size * 0.5;
+    vec3 start_coords = point - mod(point, voxel_proportions);
+
+    origin = start_coords;
     size = voxel_size;
 }
 
 bool in_the_same_area(in vec3 p1, in vec3 p2, in float mip_level) {
-    float voxel_count_side = get_size_of_miplevel(mip_level);
-    vec3 voxel_size = vec3(2.0 / voxel_count_side); // The cube is sized 2,2,2 in world coords
-    
-    vec3 p1_coords = round((p1 + (voxel_size / 2.0)) / voxel_size) * voxel_size;
-    vec3 p2_coords = round((p2 + (voxel_size / 2.0)) / voxel_size) * voxel_size;
+    float voxel_proportions = 2.0 / get_size_of_miplevel(mip_level);// The cube is sized 2,2,2 in world coords
+    vec3 voxel_size = vec3(voxel_proportions); 
+
+    vec3 p1_coords = p1 - mod(p1, voxel_proportions);
+    vec3 p2_coords = p2 - mod(p2, voxel_proportions);
 
     return all(lessThan(p1_coords - p2_coords, vec3(0.001)));
 }
 
 float get_distance(in float level) {
-    return pow(2.0, level) * SMALLEST_VOXEL * 0.1;
+    return 2.0 / get_size_of_miplevel(level) * 0.05;
+    return pow(2.0, level - 1.0) * SMALLEST_VOXEL * 0.025;
 }
 //tmin = max(tmin, min(min(t1, t2), tmax));
 //tmax = min(tmax, max(max(t1, t2), tmin));
@@ -135,48 +136,56 @@ void ray_AABB_intersection_v2(in vec3 ray_origin,
 
 vec3 mrm() {
     // Raymarching conf
-    vec3 pos = v_world_position;
-    vec3 ray_dir = normalize(pos - u_camera_position);
-    vec3 it_pos = pos + ray_dir * 0.001;
+    vec3 ray_dir = normalize(v_world_position - u_camera_position);
+    vec3 pos = v_world_position - ray_dir * 0.001;
 
     // MRM
     uint curr_mipmap_level = 7;
-    float dist = 0.001; // Distance from start to sampling point
+    float dist = 0.002; // Distance from start to sampling point
     const float MAX_DIST = 15.0; // Note, should be the max travel distance of teh ray
     float prev_dist = 0.0;
     vec3 prev_sample_pos = pos;
+    vec3 sample_pos;
 
-    vec3 curr_aabb_origin, curr_aabb_size;
+    vec3 curr_aabb_origin = vec3(-1.0), curr_aabb_size = vec3(2.0);
     vec3 near, far;
 
     ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
-    float dist_max = length(near - far);
+    float dist_max = length(v_world_position - far);
+
+    //return vec3(dist_max);
 
     uint i = 0;
-    for(; i < MAX_ITERATIONS; i++) {
-        vec3 sample_pos = pos + (dist * ray_dir); 
-        // Early out, can be skippd
+    for(; dist < dist_max; i++) {
+        sample_pos = pos + (dist * ray_dir); 
+        if (any(greaterThan(abs(sample_pos), vec3(1.002))) ) {
+           return vec3(0.0, 1.0,0.0);
+        }
 
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
-        if (depth > 0.05) { // There is a block
+        if (depth > 0.2) { // There is a block
             //return vec3(1.0, 0.0, 0.0);
             if (curr_mipmap_level == 0) {
-                return vec3(1.0);
+                //return vec3(i / 100);
+                return vec3(sample_pos)* 0.5 + 0.5;
             }
             //return vec3(1.0, 0.0, 0.0);
-            
+            curr_mipmap_level--;
             // compute the AABB
+            //return vec3(i / 200);
+            //return vec3(sample_pos)* 0.5 + 0.5;
             get_voxel_of_point_in_level(sample_pos, 
-                                        7 - curr_mipmap_level,
+                                        curr_mipmap_level+1,
                                         curr_aabb_origin,
                                         curr_aabb_size);
-            curr_mipmap_level--;
+            
             // Intersect the ray with the AABB
             ray_AABB_intersection(pos, ray_dir, curr_aabb_origin, curr_aabb_size, near, far);
 
             // Get near pos
-            dist = max(length(pos - near) + 0.001, 0.005);
+            dist = max(length(pos - near) + 0.0001, 0.002);
             sample_pos = pos + (dist * ray_dir);
+            //return vec3(near)* 0.5 + 0.5;
             //dist = prev_dist;
             //sample_pos = prev_sample_pos;
         } else { // Ray is unblocked
@@ -191,8 +200,9 @@ vec3 mrm() {
         prev_sample_pos = sample_pos;
     }
 
-    //return vec3(i / MAX_ITERATIONS);
     return vec3(0.0);
+    //return vec3(sample_pos) * 0.5 + 0.5;
+    //return vec3(1.0);
 }
 
 void main() {
@@ -204,13 +214,8 @@ void main() {
 
    vec3 origin, size, pos = ray_origin + ray_dir * 0.001;
    get_voxel_of_point_in_level(pos, 3.0, origin, size);
+   ray_AABB_intersection(pos, ray_dir, origin, size, near, far);
 
-   vec3 voxel_size = vec3(2.0 / (4.0)); // The cube is sized 2,2,2 in world coords
-    
-   vec3 start_coords = get_int(pos / voxel_size);
-
-   //ray_AABB_intersection(pos, ray_dir, origin, size, near, far);
-
-   o_frag_color = vec4(vec3(start_coords.x) * 0.5 + 0.50, 1.0);
-   //o_frag_color = vec4(mrm(), 1.0);   
+   o_frag_color = vec4(vec3(near), 1.0);
+   o_frag_color = vec4(mrm(), 1.0);   
 }
