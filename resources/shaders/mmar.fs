@@ -168,21 +168,23 @@ vec3 mrm() {
     uint i = 0;
     for(; i < MAX_ITERATIONS; i++) {
         vec3 sample_pos = pos + (dist * ray_dir); 
-        // Early out, can be skippd
 
-         if (!is_inside(prev_voxel_start, prev_voxel_size, sample_pos)) {
+        // Early out
+        if (!is_inside(vec3(-1.0), vec3(2.0), sample_pos)) {
+            break;
+        }
+
+        // Go back another level if we are exiting the area for where we came down
+        if (!is_inside(prev_voxel_start, prev_voxel_size, sample_pos)) {
             curr_mipmap_level = curr_mipmap_level + 1.0;
-            // Precaculate sample
+            // Recalculate sample position
             dist = prev_dist;
             sample_pos = pos + (dist * ray_dir); 
-            //continue;
         }
 
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
         if (depth > 0.07) { // There is a block
-            //return vec3(1.0, 0.0, 0.0);
             if (curr_mipmap_level == 0.0) {
-                //break;
                 return gradient(sample_pos/ 2.0 + 0.5) * 0.5 + 0.5;
             }
             get_voxel_of_point_in_level(sample_pos, curr_mipmap_level, prev_voxel_start, prev_voxel_size);
@@ -196,7 +198,6 @@ vec3 mrm() {
     }
 
     //return vec3(i / MAX_ITERATIONS);
-    //return vec3(sample_pos) * 0.5 + 0.5;
     return vec3(0.0);
 }
 
