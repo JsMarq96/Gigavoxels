@@ -16,7 +16,7 @@ uniform highp sampler3D u_volume_map;
 const int MAX_ITERATIONS = 100;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
-const float DELTA = 0.003;
+const float DELTA = 0.01;
 const float SMALLEST_VOXEL = 0.0078125; // 2.0 / 256
 
 const vec3 DELTA_X = vec3(DELTA, 0.0, 0.0);
@@ -43,6 +43,13 @@ float get_level_of_size(float size) {
 }
 float get_size_of_miplevel(float level) {
     return get_int(pow(2.0, level - 1.0));
+}
+
+bool is_inside(in vec3 box_origin, in vec3 box_size, in vec3 position) {
+    vec3 box_min = box_origin;
+    vec3 box_max = box_origin + box_size;
+
+    return all(greaterThan(position, box_min)) && all(lessThan(position, box_max));
 }
 
 void get_voxel_of_point_in_level(in vec3 point, in float mip_level, out vec3 origin, out vec3 size) {
@@ -140,7 +147,7 @@ vec3 mrm() {
     vec3 pos = v_world_position - ray_dir * 0.001;
 
     // MRM
-    uint curr_mipmap_level = 7;
+    float curr_mipmap_level = 7.0;
     float dist = 0.002; // Distance from start to sampling point
     const float MAX_DIST = 15.0; // Note, should be the max travel distance of teh ray
     float prev_dist = 0.0;
@@ -154,6 +161,9 @@ vec3 mrm() {
     float dist_max = length(v_world_position - far);
 
     //return vec3(dist_max);
+    //float prev_mip_level = curr_mipmap_level;
+    vec3 prev_voxel_size = vec3(2.0);
+    vec3 prev_voxel_start = vec3(-1.0);
 
     uint i = 0;
     for(; i < MAX_ITERATIONS; i++) {
@@ -161,16 +171,18 @@ vec3 mrm() {
         // Early out, can be skippd
 
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
-        if (depth > 0.05) { // There is a block
+        if (depth > 0.07) { // There is a block
             //return vec3(1.0, 0.0, 0.0);
-            if (curr_mipmap_level == 0) {
-                return sample_pos * 0.5 + 0.5;
+            if (curr_mipmap_level == 0.0) {
+                return gradient(sample_pos/ 2.0 + 0.5) * 0.5 + 0.5;
                 break;
+                return sample_pos * 0.5 + 0.5;
+                
                 return vec3(1.0);
             }
-            curr_mipmap_level--;
+            curr_mipmap_level = curr_mipmap_level - 1.0;
+            // go back  one step
             dist = prev_dist;
-            sample_pos = prev_sample_pos;
         } else { // Ray is unblocked
             dist += get_distance(curr_mipmap_level);
         }
@@ -179,7 +191,7 @@ vec3 mrm() {
 
     //return vec3(i / MAX_ITERATIONS);
     //return vec3(sample_pos) * 0.5 + 0.5;
-    return vec3(1.0);
+    return vec3(0.0);
 }
 
 void main() {
