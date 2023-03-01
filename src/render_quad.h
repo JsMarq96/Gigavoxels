@@ -6,8 +6,10 @@
 #include <string.h>
 #include <cassert>
 #include <stdlib.h>
+#include <glm/glm.hpp>
 
 #include "glcorearb.h"
+#include "glm/fwd.hpp"
 #include "texture.h"
 #include "material.h"
 
@@ -46,27 +48,32 @@ struct sQuadRenderer {
         glBindVertexArray(0);
 
         // TODO: Config shader & material
-        quad_material.shader.load_file_shaders("resources/shaders/quad.vs",
-                                               "resources/shaders/quad.fs");
+        //quad_material.shader = shader;
     }
 
-    void render(const uint32_t color_texture,
-                const uint32_t depth_texture) const {
+    void render(const glm::mat4x4 *models, 
+                const uint32_t models_count,
+                const glm::mat4x4 &view_proj,
+                const glm::vec3 &camera_position) const {
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
         glBindVertexArray(VAO);
         quad_material.enable();
 
-        // Bind FBO color / texture color
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, color_texture);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, depth_texture);
+        
+        for(int i = 0; i < models_count; i++) {
+            quad_material.shader.set_uniform_matrix4("u_model_mat", models[i]);
+            quad_material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
+            quad_material.shader.set_uniform_vector("u_camera_position", camera_position);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         quad_material.disable();
         glBindVertexArray(0);
-
+        glDisable(GL_BLEND);
     }
 };
 
