@@ -61,11 +61,11 @@ struct sQuadRenderer {
         glBindVertexArray(VAO);
         quad_material.enable();
 
+        quad_material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
+        quad_material.shader.set_uniform_vector("u_camera_position", camera_position);
         
         for(int i = 0; i < models_count; i++) {
             quad_material.shader.set_uniform_matrix4("u_model_mat", models[i]);
-            quad_material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
-            quad_material.shader.set_uniform_vector("u_camera_position", camera_position);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
 
