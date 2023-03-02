@@ -287,7 +287,7 @@ void draw_loop(GLFWwindow *window) {
 		ImGui::Begin("Scene control");
 
 		// Rotate the camera arround
-		ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 2.0f * PI);
+		ImGui::SliderFloat("Camera rotation", &camera_angle, 0.01f, 2.5f * PI);
 		ImGui::SliderFloat("Camera height", &camera_height, -25.0f, 20.0f);
 		ImGui::Checkbox("Raymarching", &raymarch_or_octree);
 
@@ -297,13 +297,8 @@ void draw_loop(GLFWwindow *window) {
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
-		glm::vec3 starting_pos = {0.0f, 0.0f, -1.0f};
-		float movement_delta = 2.0f / 256.0f;// size of a voxel in world space
-		for(uint32_t i = 0; i < 256; i++) {
-			models[i] = glm::translate(glm::mat4x4(1.0f), starting_pos);
-			starting_pos.z += movement_delta;
-		}
-		quad_renderer.render(models, 256, projection_mat * view_mat, camera_original_position);
+		
+		quad_renderer.render(projection_mat * view_mat, camera_original_position);
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		ImGui::End();
