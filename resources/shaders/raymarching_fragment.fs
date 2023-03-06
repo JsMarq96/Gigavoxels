@@ -13,10 +13,10 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 100;
-const float STEP_SIZE = 0.007; // 0.004 ideal for quality
+const int MAX_ITERATIONS = 600;
+const float STEP_SIZE = 0.004; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
-const float DELTA = 0.003;
+const float DELTA = 0.001;
 
 const vec3 DELTA_X = vec3(DELTA, 0.0, 0.0);
 const vec3 DELTA_Y = vec3(0.0, DELTA, 0.0);
@@ -29,10 +29,18 @@ vec3 gradient(in vec3 pos) {
     return normalize(vec3(x, y, z) / vec3(DELTA * 2.0));
 }
 
+
+bool is_inside(in vec3 box_origin, in vec3 box_size, in vec3 position) {
+    vec3 box_min = box_origin;
+    vec3 box_max = box_origin + box_size;
+
+    return all(greaterThan(position, box_min)) && all(lessThan(position, box_max));
+}
+
 vec4 render_volume() {
     vec3 pos = v_world_position;
     vec3 ray_dir = normalize(pos - u_camera_position);
-    vec3 it_pos = pos - ray_dir * 0.001;
+    vec3 it_pos = pos + ray_dir * 0.001;
     // Add jitter
     //vec3 jitter_addition = ray_dir * (texture(u_albedo_map, gl_FragCoord.xy / vec2(NOISE_TEX_WIDTH)).rgb * STEP_SIZE);
     //it_pos = it_pos + jitter_addition;
@@ -42,14 +50,21 @@ vec4 render_volume() {
         if (final_color.a >= 0.95) {
             break;
         }
+
+        if (!is_inside(vec3(-1.0), vec3(2.0), it_pos)) {
+            break;
+        }
         
         float depth = texture(u_volume_map, it_pos /2.0 + 0.5).r;
-        if (0.05 <= depth) {
+        if (0.15 <= depth) {
+            //break;
+            return vec4(vec3(it_pos/2.0 + 0.5), 1.0);
             return vec4( 1.0);
             return vec4(gradient(it_pos), 1.0);
       }
       it_pos = it_pos + (STEP_SIZE * ray_dir);
    }
+   //return vec4(vec3(float(i) / float(MAX_ITERATIONS)), 1.0);
    return vec4(vec3(0.0), 1.0);
 }
 void main() {

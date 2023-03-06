@@ -13,10 +13,10 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 100;
-const float STEP_SIZE = 0.007; // 0.004 ideal for quality
+const int MAX_ITERATIONS = 70;
+const float STEP_SIZE = 1.0;
 const int NOISE_TEX_WIDTH = 100;
-const float DELTA = 0.01;
+const float DELTA = 0.03;
 const float SMALLEST_VOXEL = 0.0078125; // 2.0 / 256
 
 const vec3 DELTA_X = vec3(DELTA, 0.0, 0.0);
@@ -38,10 +38,10 @@ float get_int(in float f) {
     return float(int(f));
 }
 
-float get_level_of_size(float size) {
+float get_level_of_size(in float size) {
     return 1 + log2(size);
 }
-float get_size_of_miplevel(float level) {
+float get_size_of_miplevel(in float level) {
     return get_int(pow(2.0, level - 1.0));
 }
 
@@ -73,7 +73,7 @@ bool in_the_same_area(in vec3 p1, in vec3 p2, in float mip_level) {
 }
 
 float get_distance(in float level) {
-    return 2.0 / get_size_of_miplevel(level) * 0.75;
+    return 2.0 / get_size_of_miplevel(level) * STEP_SIZE;
     return pow(2.0, level - 1.0) * SMALLEST_VOXEL * 0.025;
 }
 //tmin = max(tmin, min(min(t1, t2), tmax));
@@ -165,7 +165,7 @@ vec3 mrm() {
     vec3 prev_voxel_size = vec3(2.0);
     vec3 prev_voxel_start = vec3(-1.0);
 
-    uint i = 0;
+    int i = 0;
     for(; i < MAX_ITERATIONS; i++) {
         vec3 sample_pos = pos + (dist * ray_dir); 
 
@@ -183,8 +183,11 @@ vec3 mrm() {
         }
 
         float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, curr_mipmap_level).r;
-        if (depth > 0.07) { // There is a block
+        if (depth > 0.15) { // There is a block
             if (curr_mipmap_level == 0.0) {
+                //break;
+                //return vec3(1.0);
+                return vec3(sample_pos / 2.0 + 0.5);
                 return gradient(sample_pos/ 2.0 + 0.5) * 0.5 + 0.5;
             }
             get_voxel_of_point_in_level(sample_pos, curr_mipmap_level, prev_voxel_start, prev_voxel_size);
@@ -197,21 +200,10 @@ vec3 mrm() {
         prev_dist = dist;
     }
 
-    //return vec3(i / MAX_ITERATIONS);
+    //return vec3(float(i) / float(MAX_ITERATIONS));
     return vec3(0.0);
 }
 
 void main() {
-    vec3 ray_origin = v_world_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
-    vec3 ray_dir = normalize(ray_origin - u_camera_position);
-   //o_frag_color = texture(u_albedo_map, gl_FragCoord.xy / vec2(NOISE_TEX_WIDTH));
-   //o_frag_color = render_volume(); //*
-   vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
-
-   vec3 origin, size, pos = ray_origin + ray_dir * 0.001;
-   get_voxel_of_point_in_level(pos, 3.0, origin, size);
-   ray_AABB_intersection(pos, ray_dir, origin, size, near, far);
-
-   o_frag_color = vec4(vec3(near), 1.0);
    o_frag_color = vec4(mrm(), 1.0);   
 }
