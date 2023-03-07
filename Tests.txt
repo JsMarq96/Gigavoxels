@@ -1,8 +1,9 @@
-PC
-
+PC (1 view)
 2.39 ms raymarching
 1.2 ms MMAR
 
-Quest
-
-12.2 ms
+Quest (2 view)
+15 ms ray
+14.5 ms Accel
+10.5 ms mod Accel (rec)
+9.5 ms mod Accel+ aggresive jitter (0.8 step)
