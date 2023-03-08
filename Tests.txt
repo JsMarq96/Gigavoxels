@@ -7,3 +7,7 @@ Quest (2 view)
 14.5 ms Accel
 10.5 ms mod Accel (rec)
 9.5 ms mod Accel+ aggresive jitter (0.8 step)
+
+
+120 hz 8.33 ms
+90 hz 11 ms
