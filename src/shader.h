@@ -23,6 +23,8 @@ struct sShader {
     void load_file_graphic_shaders(const char* v_shader_dir, const char* f_shader_dir);
     void load_graphic_shaders(const char* vertex_shader, const char* frag_shader_dir);
     void load_compute_shader(const char* raw_compute);
+    void load_file_compute_shader(const char* raw_compute);
+
 
     void activate() const;
     void deactivate() const;

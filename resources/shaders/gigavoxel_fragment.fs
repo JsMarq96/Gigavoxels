@@ -262,6 +262,8 @@ vec4 iterate_test(in vec3 ray_origin,
 }
 
 void main() {
+    o_frag_color = vec4(1.0, 0.0, 0.0, 1.0);
+    return;
     vec3 ray_origin = v_world_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
     vec3 ray_dir = normalize(ray_origin - u_camera_position);
     vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);

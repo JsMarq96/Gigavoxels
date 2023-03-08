@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <stdint.h>
 
+#include "glm/fwd.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -16,6 +17,7 @@
 #include "input_layer.h"
 #include "gigavoxels.h"
 #include "volume_counter.h"
+#include "surface_nets.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -233,14 +235,19 @@ void draw_loop(GLFWwindow *window) {
 #endif
 
 	
-	Gigavoxel::sOctree octree = {};
-	octree.compute_octree(test_text, 128, 128, 128);
+	SurfaceNets::sGenerator surface_nets = {};
+	bool first = true;
+
+	//return;
+
+	//Gigavoxel::sOctree octree = {};
+	//octree.compute_octree(test_text, 128, 128, 128);
 	//octree.compute_octree_from_adress(volume_tex_dir, 256, 256, 256);
 
-	octree_material.add_SSBO(2, octree.SSBO);
+	//octree_material.add_SSBO(2, octree.SSBO);
 
 	bool raymarch_or_octree = false;
-
+	glm::mat4x4 models[11719] = {};
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
 		int width, heigth;
@@ -291,8 +298,21 @@ void draw_loop(GLFWwindow *window) {
 			cube_renderer.material = octree_material;
 		}
 
-		cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
+		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
+		if (first) {
+			surface_nets.generate_from_volume(test_text, 128);
+			first = false;
+		} else {
+			for(uint32_t i = 0; i < 11719; i++) {
+				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) << std::endl;
+				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
+													  surface_nets.vertices->vertices[i].position),
+				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
+			}
+
+			cube_renderer.render(models, 11719, camera_original_position, projection_mat * view_mat, false);
+		}
 		ImGui::End();
 
 		ImGui::Render();

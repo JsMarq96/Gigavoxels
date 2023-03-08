@@ -144,6 +144,35 @@ void sShader::load_graphic_shaders(const char*   vertex_shader_raw,
     glDeleteShader(fragment_id);
 };
 
+void sShader::load_file_compute_shader(const char*     shader_dir) {
+    FILE *vert_file, *frag_file;
+    int vert_size, frag_size;
+    char* raw_vert_shader, *raw_frag_shader;
+
+    vert_file = fopen(shader_dir, "r");
+
+    assert(vert_file != NULL && "Failed to open file vertex shader on gameobject"); // Load the vertex shader
+
+    // Get sizes of the raw shader code
+    fseek(vert_file, 0L, SEEK_END);
+    vert_size = ftell(vert_file);
+
+    rewind(vert_file);
+
+    raw_vert_shader = (char*) malloc((vert_size) + 1);
+
+    memset(raw_vert_shader, '\0', vert_size + 1);
+
+    // read the raw file
+    fread(raw_vert_shader, 1, vert_size, vert_file);
+
+    fclose(vert_file);
+
+    load_compute_shader(raw_vert_shader);
+
+    free(raw_vert_shader);
+}
+
 void sShader::load_compute_shader(const char* raw_compute) {
     int compile_successs;
     char compile_log[512];
@@ -183,7 +212,7 @@ void sShader::load_compute_shader(const char* raw_compute) {
             512,
             NULL,
             compile_log);
-        
+        std::cout << compile_log << std::endl;
         assert(">>>>>Shader Linking error" && false);
     }
 
