@@ -53,6 +53,6 @@ void main() {
     }
 
     int index = atomicAdd(vertices_count, 1);
-    vertices[index].vertex =  (vec3(1.0) / vec3(gl_WorkGroupID.xyz)) - ( (point / float(axis_count)));
+    vertices[index].vertex =  (vec3(gl_GlobalInvocationID.xyz) / 128.0) - (( 1.0 / 128.0) * (point / float(axis_count)));
 }
 

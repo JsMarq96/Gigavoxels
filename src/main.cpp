@@ -188,9 +188,9 @@ void draw_loop(GLFWwindow *window) {
 	// Test values
 	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
 	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	for(uint32_t y = 0; y < 64; y++) {
-		for(uint32_t x = 0; x < 64; x++) {
-			for(uint32_t z = 0; z < 64; z++) {
+	for(uint32_t y = 10; y < 64; y++) {
+		for(uint32_t x = 10; x < 64; x++) {
+			for(uint32_t z = 10; z < 64; z++) {
 				text_data[x + y * 128 + z * (128*128)] = 255;
 			}
 		}
