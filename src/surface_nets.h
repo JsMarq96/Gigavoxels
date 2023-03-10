@@ -15,10 +15,13 @@ namespace SurfaceNets {
 
     struct sSurfacesPoint {
         glm::vec3 position;
+        float padding;
         glm::vec3 normal;
+        float padding2;
     };
 
     struct sRawMesh {
+        glm::vec3 pad;
         int vertices_count = 0;
         sSurfacesPoint vertices[];
     };
@@ -47,10 +50,10 @@ namespace SurfaceNets {
 			glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
 
             mesh_vertex_finder.activate();
-            mesh_vertex_finder.set_uniform_texture("u_volume_map", GL_TEXTURE0);
-            mesh_vertex_finder.dispatch(volume_texture.width, 
-                                        volume_texture.width,
-                                        volume_texture.width, 
+            mesh_vertex_finder.set_uniform_texture("u_volume_map", 0);
+            mesh_vertex_finder.dispatch(sampling_rate, 
+                                        sampling_rate,
+                                        sampling_rate, 
                                         true);
 			mesh_vertex_finder.deactivate();
 
@@ -58,7 +61,7 @@ namespace SurfaceNets {
             vertices = (sRawMesh*) malloc(vertices_byte_size);
 			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, vertices);
 
-            std::cout << vertices->vertices_count << " Vertices found " << vertices->vertices[0].position.x << std::endl;
+            std::cout << vertices->vertices_count << " Vertices found " << sampling_rate << std::endl;
 
         }
     };

@@ -176,6 +176,7 @@ void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir
     *farv = ray_dir * tmax + ray_origin;
 }
 
+glm::mat4x4 models[262155] = {};
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
@@ -188,9 +189,9 @@ void draw_loop(GLFWwindow *window) {
 	// Test values
 	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
 	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	for(uint32_t y = 10; y < 64; y++) {
-		for(uint32_t x = 10; x < 64; x++) {
-			for(uint32_t z = 10; z < 64; z++) {
+	for(uint32_t y = 0; y < 64; y++) {
+		for(uint32_t x = 0; x < 64; x++) {
+			for(uint32_t z = 0; z < 64; z++) {
 				text_data[x + y * 128 + z * (128*128)] = 255;
 			}
 		}
@@ -247,7 +248,6 @@ void draw_loop(GLFWwindow *window) {
 	//octree_material.add_SSBO(2, octree.SSBO);
 
 	bool raymarch_or_octree = false;
-	glm::mat4x4 models[11719] = {};
 	while(!glfwWindowShouldClose(window)) {
 		// Draw loop
 		int width, heigth;
@@ -301,17 +301,21 @@ void draw_loop(GLFWwindow *window) {
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		if (first) {
-			surface_nets.generate_from_volume(test_text, 128);
+			surface_nets.generate_from_volume(test_text, 32);
 			first = false;
 		} else {
-			for(uint32_t i = 0; i < 11719; i++) {
-				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) << std::endl;
+			for(uint32_t i = 0; i < 20; i++) {
+				std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
+				
+			}
+			for(uint32_t i = 0; i < surface_nets.vertices->vertices_count ; i++) {
+				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
 				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
 													  surface_nets.vertices->vertices[i].position),
 				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
 			}
 
-			cube_renderer.render(models, 11719, camera_original_position, projection_mat * view_mat, false);
+			cube_renderer.render(models, surface_nets.vertices->vertices_count, camera_original_position, projection_mat * view_mat, false);
 		}
 		ImGui::End();
 

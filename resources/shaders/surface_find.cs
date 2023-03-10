@@ -2,10 +2,14 @@
 
 struct sSurfaceVertex {
     vec3 vertex;
+    float padding;
     vec3 normal;
+    float padding2;
 };
 
 layout(std430, binding = 1) buffer vertices_surfaces {
+    
+    vec3 pad;
     int vertices_count;
     sSurfaceVertex vertices[];
 };
@@ -34,25 +38,14 @@ const ivec3 DELTAS[8] = ivec3[8](
 );
 
 void main() {
-	ivec3 curr_index = ivec3(gl_GlobalInvocationID.xyz + uvec3(1u));
+	vec3 curr_index = vec3(gl_GlobalInvocationID.xyz) / vec3(gl_NumWorkGroups.xyz);
 
-    vec3 point = vec3(0.0);
-    bool used_axis[8];
-    int axis_count = 0;
-    for(uint i = 0u; i < 8u; i++) {
-        float density = texelFetch(u_volume_map, curr_index + DELTAS[i], 0).r;
-
-        used_axis[i] = density > 0.15;
-        float is_empty = step(density, 0.15);
-        point += is_empty * DELTAS[i];
-        axis_count += int(is_empty) * 1;
-    }
-
-    if (axis_count == 0 || axis_count == 8) {
-        return;
-    }
-
+    
     int index = atomicAdd(vertices_count, 1);
-    vertices[index].vertex =  (vec3(gl_GlobalInvocationID.xyz) / 128.0) - (( 1.0 / 128.0) * (point / float(axis_count)));
+    vertices[index].vertex =  curr_index;
+    vertices[index].normal =  vec3(1.0);
+    return;
+
+   
 }
 
