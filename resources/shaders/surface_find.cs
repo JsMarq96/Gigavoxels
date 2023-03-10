@@ -38,14 +38,28 @@ const ivec3 DELTAS[8] = ivec3[8](
 );
 
 void main() {
-	vec3 curr_index = vec3(gl_GlobalInvocationID.xyz) / vec3(gl_NumWorkGroups.xyz);
+    vec3 pos = vec3(gl_GlobalInvocationID.xyz + 1) / vec3(62.0);
+	ivec3 curr_index = ivec3(pos);
 
-    
+    vec3 point = vec3(0.0);
+    bool used_axis[8];
+    int axis_count = 0;
+    for(uint i = 0u; i < 8u; i++) {
+        float density = texelFetch(u_volume_map, curr_index + DELTAS[i], 0).r;
+
+        if (density > 0.55) {
+            point += vec3(DELTAS[i]);
+            axis_count += 1;
+        }
+    }
+
+    if (axis_count == 0 || axis_count == 7) {
+        return;
+    }
+
     int index = atomicAdd(vertices_count, 1);
-    vertices[index].vertex =  curr_index;
-    vertices[index].normal =  vec3(1.0);
-    return;
-
-   
+    vertices[index].vertex =  (pos + (point / axis_count)) * 1.0;
+    vertices[index].normal = vec3(1.0);//gl_GlobalInvocationID.xyz;
+    //vertices[index].normal.x = axis_count / 8.0;
 }
 

@@ -301,13 +301,13 @@ void draw_loop(GLFWwindow *window) {
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		if (first) {
-			surface_nets.generate_from_volume(test_text, 32);
+			surface_nets.generate_from_volume(test_text, 62);
 			first = false;
 		} else {
 			for(uint32_t i = 0; i < 20; i++) {
-				std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
+				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
 				
-			}
+			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
 			for(uint32_t i = 0; i < surface_nets.vertices->vertices_count ; i++) {
 				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
 				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 

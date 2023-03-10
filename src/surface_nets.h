@@ -37,6 +37,7 @@ namespace SurfaceNets {
                                   const uint32_t sampling_rate) {
             mesh_vertex_finder.load_file_compute_shader("..\\resources\\shaders\\surface_find.cs");
 
+
             uint32_t max_vertex_count = sampling_rate * sampling_rate * sampling_rate;
             size_t vertices_byte_size = sizeof(int) + sizeof(sSurfacesPoint) * max_vertex_count;
                         
