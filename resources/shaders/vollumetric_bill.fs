@@ -12,5 +12,9 @@ uniform vec3 u_camera_position;
 uniform highp sampler3D u_volume_map;
 
 void main() {
-    o_frag_color = vec4(textureLod(u_volume_map, v_world_position * 0.5 + 0.5, 0).r);
+    float depth = textureLod(u_volume_map, v_world_position * 0.5 + 0.5, 0).r;
+
+    if (depth < 0.15) { discard;}
+
+    o_frag_color = vec4(v_world_position * 0.5 + 0.5, 1.0);
 }
