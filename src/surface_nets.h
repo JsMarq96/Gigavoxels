@@ -15,7 +15,7 @@ namespace SurfaceNets {
 
     struct sSurfacesPoint {
         glm::vec3 position;
-        bool is_surface;
+        int is_surface;
         //glm::vec3 normal;
         //float padding2;
     };

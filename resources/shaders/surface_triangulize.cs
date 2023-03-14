@@ -2,7 +2,7 @@
 
 struct sSurfacePoint {
     vec3 position;
-    bool is_surface;
+    int is_surface;
 };
 
 layout(std430, binding = 1) buffer vertices_surfaces {
@@ -40,18 +40,19 @@ void main() {
     int index = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * gl_NumWorkGroups.y + gl_GlobalInvocationID.z *  gl_NumWorkGroups.z * gl_NumWorkGroups.z;
 
     vec3 point = vec3(0.0);
-    int axis_count = 0;
+    int axis_seed = 0;
     for(uint i = 0u; i < 8u; i++) {
         float density = texelFetch(u_volume_map, curr_index + DELTAS[i], 0).r;
 
         if (density > 0.5) {
             point += vec3(DELTAS[i]);
-            axis_count += 1;
+            axis_seed |= 1 << i;
         }
     }
+    0xfff
 
     vec3 value = vec3(0.0);
-    if (axis_count > 0 && axis_count < 8) {
+    if (axis_seed > 0 && axis_count < 8) {
         value = (pos + (point / axis_count) * (1.0/works_size));
     }
 

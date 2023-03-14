@@ -310,7 +310,7 @@ void draw_loop(GLFWwindow *window) {
 			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
 			for(uint32_t i = 0; i < 262140 ; i++) {
 				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
-				if (!surface_nets.surface_points[i].is_surface) {
+				if (surface_nets.surface_points[i].is_surface == 0 || surface_nets.surface_points[i].is_surface == 0xff) {
 					//i--;
 					continue;
 				}
