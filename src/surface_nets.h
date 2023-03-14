@@ -15,9 +15,9 @@ namespace SurfaceNets {
 
     struct sSurfacesPoint {
         glm::vec3 position;
-        float padding;
-        glm::vec3 normal;
-        float padding2;
+        bool is_surface;
+        //glm::vec3 normal;
+        //float padding2;
     };
 
     struct sRawMesh {
@@ -29,6 +29,8 @@ namespace SurfaceNets {
     struct sGenerator {
         sRawMesh *vertices;
 
+        sSurfacesPoint* surface_points = NULL;
+
         uint32_t mesh_vertices_SSBO = 0;
 
         sShader  mesh_vertex_finder = {};
@@ -39,7 +41,7 @@ namespace SurfaceNets {
 
 
             uint32_t max_vertex_count = sampling_rate * sampling_rate * sampling_rate;
-            size_t vertices_byte_size = sizeof(int) + sizeof(sSurfacesPoint) * max_vertex_count;
+            size_t vertices_byte_size = sizeof(sSurfacesPoint) * max_vertex_count;
                         
             glGenBuffers(1, &mesh_vertices_SSBO);
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, mesh_vertices_SSBO);
@@ -59,11 +61,8 @@ namespace SurfaceNets {
 			mesh_vertex_finder.deactivate();
 
             // Get the vertices back from the GPU memmory
-            vertices = (sRawMesh*) malloc(vertices_byte_size);
-			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, vertices);
-
-            std::cout << vertices->vertices_count << " Vertices found " << sampling_rate << std::endl;
-
+            surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
+			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, surface_points);
         }
     };
 

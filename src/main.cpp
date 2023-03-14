@@ -305,17 +305,21 @@ void draw_loop(GLFWwindow *window) {
 			first = false;
 		} else {
 			for(uint32_t i = 0; i < 20; i++) {
-				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
+				std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
 				
 			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
-			for(uint32_t i = 0; i < surface_nets.vertices->vertices_count ; i++) {
+			for(uint32_t i = 0; i < 262140 ; i++) {
 				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
+				if (!surface_nets.surface_points[i].is_surface) {
+					//i--;
+					continue;
+				}
 				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
-													  surface_nets.vertices->vertices[i].position),
+													  surface_nets.surface_points[i].position),
 				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
 			}
 
-			cube_renderer.render(models, surface_nets.vertices->vertices_count, camera_original_position, projection_mat * view_mat, false);
+			cube_renderer.render(models, 262140, camera_original_position, projection_mat * view_mat, false);
 		}
 		ImGui::End();
 

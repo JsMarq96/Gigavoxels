@@ -6,7 +6,7 @@ struct sSurfacePoint {
 };
 
 layout(std430, binding = 1) buffer vertices_surfaces {
-    sSurfacePoint vertices[];
+    sSurface vertices[];
 };
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
@@ -37,7 +37,7 @@ void main() {
     vec3 works_size =  vec3(gl_NumWorkGroups.xyz);
     vec3 pos = vec3(curr_index) / works_size;
 
-    uint index = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * gl_NumWorkGroups.y + gl_GlobalInvocationID.z *  gl_NumWorkGroups.z * gl_NumWorkGroups.z;
+    int index = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * gl_NumWorkGroups.y + gl_GlobalInvocationID.z *  gl_NumWorkGroups.z * gl_NumWorkGroups.z;
 
     vec3 point = vec3(0.0);
     int axis_count = 0;
@@ -51,15 +51,13 @@ void main() {
     }
 
     vec3 value = vec3(0.0);
-    bool surface = false;
     if (axis_count > 0 && axis_count < 8) {
         value = (pos + (point / axis_count) * (1.0/works_size));
-        surface = true;
     }
 
     //atomicAdd(vertices_count, 1);
     vertices[index].position = value;
-    vertices[index].is_surface = surface;
+    vertices[index].is_surface = false;
     //vertices[index].normal = vec3(0.0);//gl_GlobalInvocationID.xyz;
     //vertices[index].normal.x = axis_count / 8.0;
 }
