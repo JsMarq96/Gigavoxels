@@ -210,6 +210,8 @@ void draw_loop(GLFWwindow *window) {
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
+	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/color_fragment.fsh"));
+	raymarching_material.add_shader("resources/shaders/basic_vertex.vs", "resources/shaders/raymarching_fragment.fs");
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
 
@@ -292,11 +294,11 @@ void draw_loop(GLFWwindow *window) {
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
-		if (raymarch_or_octree) {
+		/*if (raymarch_or_octree) {
 			cube_renderer.material = raymarching_material;
 		} else {
 			cube_renderer.material = octree_material;
-		}
+		}*/
 
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
@@ -305,7 +307,7 @@ void draw_loop(GLFWwindow *window) {
 			first = false;
 		} else {
 			for(uint32_t i = 0; i < 20; i++) {
-				std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
+				//std::cout << glm::to_string(surface_nets.surface_points[i * 50].position) << " "<< surface_nets.surface_points[i * 50].is_surface << std::endl;
 				
 			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
 			for(uint32_t i = 0; i < 262140 ; i++) {
@@ -314,11 +316,12 @@ void draw_loop(GLFWwindow *window) {
 					//i--;
 					continue;
 				}
+				//std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
 				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
 													  surface_nets.surface_points[i].position),
 				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
 			}
-
+			std::cout  << "FRAME END" << std::endl;
 			cube_renderer.render(models, 262140, camera_original_position, projection_mat * view_mat, false);
 		}
 		ImGui::End();

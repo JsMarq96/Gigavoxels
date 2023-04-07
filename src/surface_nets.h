@@ -37,7 +37,7 @@ namespace SurfaceNets {
 
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate) {
-            mesh_vertex_finder.load_file_compute_shader("..\\resources\\shaders\\surface_find.cs");
+            mesh_vertex_finder.load_file_compute_shader("../resources/shaders/surface_find.cs");
 
 
             uint32_t max_vertex_count = sampling_rate * sampling_rate * sampling_rate;

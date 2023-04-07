@@ -64,6 +64,7 @@ void sShader::load_file_graphic_shaders(const char*     v_shader_dir,
     frag_file = fopen(f_shader_dir, "r");
 
 
+    std::cout << v_shader_dir << std::endl;
     assert(vert_file != NULL && "Failed to open file vertex shader on gameobject"); // Load the vertex shader
     assert(frag_file != NULL && "Failed to open file fragment shader on gameobject");
 
@@ -151,7 +152,7 @@ void sShader::load_file_compute_shader(const char*     shader_dir) {
 
     vert_file = fopen(shader_dir, "r");
 
-    assert(vert_file != NULL && "Failed to open file vertex shader on gameobject"); // Load the vertex shader
+    assert(vert_file != NULL && "Failed to open file compute shader"); // Load the vertex shader
 
     // Get sizes of the raw shader code
     fseek(vert_file, 0L, SEEK_END);
