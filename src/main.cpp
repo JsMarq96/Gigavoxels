@@ -304,6 +304,7 @@ void draw_loop(GLFWwindow *window) {
 
 		if (first) {
 			surface_nets.generate_from_volume(test_text, 102);
+			return;
 			first = false;
 		} else {
 			for(uint32_t i = 0; i < 20; i++) {
