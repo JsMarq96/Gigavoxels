@@ -37,14 +37,14 @@ const ivec3 TEST_AXIS_Y[4] = ivec3[4](
     ivec3(0, 0, -1)
 );
 
-uint num_work_groups_z_p2 = gl_NumWorkGroups.z * gl_NumWorkGroups.z;
+int num_work_groups_z_p2 = int(gl_NumWorkGroups.z * gl_NumWorkGroups.z);
 
-uint get_index_of_position(in uvec3 position) {
-    return position.x + position.y * gl_NumWorkGroups.y + position.z * num_work_groups_z_p2;
+int get_index_of_position(in ivec3 position) {
+    return int(position.x + position.y * gl_NumWorkGroups.y + position.z * num_work_groups_z_p2);
 }
 
-void test_triangle_x(in uvec3 curr_pos, in sSurfacePoint current_point) {
-    uint t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_X[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_X[1]);
+void test_triangle_x(in ivec3 curr_pos, in sSurfacePoint current_point) {
+    int t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_X[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_X[1]);
     // Test first triangle
     if (vertices[t1_v1].is_surface != 0 && vertices[t1_v1].is_surface != 255 && vertices[t1_v2].is_surface != 0 && vertices[t1_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -53,7 +53,7 @@ void test_triangle_x(in uvec3 curr_pos, in sSurfacePoint current_point) {
         mesh_vertices[start_vert+2] = vertices[t1_v2].position;
     }
 
-    uint t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_X[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_X[3]);
+    int t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_X[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_X[3]);
     // Test first triangle
     if (vertices[t2_v1].is_surface != 0 && vertices[t2_v1].is_surface != 255 && vertices[t2_v2].is_surface != 0 && vertices[t2_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -63,8 +63,8 @@ void test_triangle_x(in uvec3 curr_pos, in sSurfacePoint current_point) {
     }
 }
 
-void test_triangle_y(in uvec3 curr_pos, in sSurfacePoint current_point) {
-    uint t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[1]);
+void test_triangle_y(in ivec3 curr_pos, in sSurfacePoint current_point) {
+    int t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[1]);
     // Test first triangle
     if (vertices[t1_v1].is_surface != 0 && vertices[t1_v1].is_surface != 255 && vertices[t1_v2].is_surface != 0 && vertices[t1_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -73,7 +73,7 @@ void test_triangle_y(in uvec3 curr_pos, in sSurfacePoint current_point) {
         mesh_vertices[start_vert+2] = vertices[t1_v2].position;
     }
 
-    uint t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[3]);
+    int t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[3]);
     // Test first triangle
     if (vertices[t2_v1].is_surface != 0 && vertices[t2_v1].is_surface != 255 && vertices[t2_v2].is_surface != 0 && vertices[t2_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -83,8 +83,8 @@ void test_triangle_y(in uvec3 curr_pos, in sSurfacePoint current_point) {
     }
 }
 
-void test_triangle_z(in uvec3 curr_pos, in sSurfacePoint current_point) {
-    uint t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_Z[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_Z[1]);
+void test_triangle_z(in ivec3 curr_pos, in sSurfacePoint current_point) {
+    int t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_Z[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_Z[1]);
     // Test first triangle
     if (vertices[t1_v1].is_surface != 0 && vertices[t1_v1].is_surface != 255 && vertices[t1_v2].is_surface != 0 && vertices[t1_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -93,7 +93,7 @@ void test_triangle_z(in uvec3 curr_pos, in sSurfacePoint current_point) {
         mesh_vertices[start_vert+2] = vertices[t1_v2].position;
     }
 
-    uint t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_Z[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_Z[3]);
+    int t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_Z[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_Z[3]);
     // Test first triangle
     if (vertices[t2_v1].is_surface != 0 && vertices[t2_v1].is_surface != 255 && vertices[t2_v2].is_surface != 0 && vertices[t2_v2].is_surface != 255) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 3);
@@ -104,7 +104,8 @@ void test_triangle_z(in uvec3 curr_pos, in sSurfacePoint current_point) {
 }
 
 void main() {
-    uint index = get_index_of_position(gl_GlobalInvocationID);
+    ivec3 post = ivec3(gl_GlobalInvocationID);
+    int index = get_index_of_position(post);
 
     sSurfacePoint current_point = vertices[index];
 
@@ -114,7 +115,7 @@ void main() {
         return;
     }
     
-    test_triangle_x(gl_GlobalInvocationID, current_point);
-    test_triangle_y(gl_GlobalInvocationID, current_point);
-    test_triangle_z(gl_GlobalInvocationID, current_point);
+    test_triangle_x(post, current_point);
+    test_triangle_y(post, current_point);
+    test_triangle_z(post, current_point);
 }
