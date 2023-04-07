@@ -92,8 +92,14 @@ namespace SurfaceNets {
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t), sizeof(glm::vec3) * vertex_count, mesh);
             std::cout << vertex_count  << "Vertex " << std::endl;
             for(uint32_t i = 0; i < vertex_count; i++) {
-                std::cout << glm::to_string(mesh[i]) << std::endl;
+                std::cout << "v " << mesh[i].x << " "<< mesh[i].y << " "<< mesh[i].z << std::endl;
             }
+
+            for(uint32_t i = 0; i < vertex_count;) {
+                std::cout << "f " << i++ << " " << i++ << " " << i++ << " " << std::endl;
+            }
+
+            free(mesh);
         }
     };
 
