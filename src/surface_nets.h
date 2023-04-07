@@ -9,6 +9,8 @@
 #include "shader.h"
 #include "texture.h"
 
+#include "glm/gtx/string_cast.hpp"
+
 // https://github.com/mikolalysenko/mikolalysenko.github.com/blob/master/Isosurface/js/surfacenets.js
 namespace SurfaceNets {
     const uint32_t MAX_VERTEX_COUNT = 2000;
@@ -37,6 +39,8 @@ namespace SurfaceNets {
         sShader  mesh_vertex_finder = {};
         sShader  mesh_vertex_generator = {};
 
+        glm::vec3 *mesh = NULL;
+
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate) {
             mesh_vertex_finder.load_file_compute_shader("../resources/shaders/surface_find.cs");
@@ -64,10 +68,11 @@ namespace SurfaceNets {
                                         true);
 			mesh_vertex_finder.deactivate();
 
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
             // Allocate memory
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
             glBufferData(GL_SHADER_STORAGE_BUFFER, mesh_byte_size + sizeof(uint32_t), NULL, GL_DYNAMIC_COPY);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[1]);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbos[1]);
 
             mesh_vertex_generator.activate();
             mesh_vertex_generator.dispatch(sampling_rate, 
@@ -79,8 +84,16 @@ namespace SurfaceNets {
             // Get the vertices back from the GPU memmory
             //surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
             uint32_t vertex_count = 0;
-			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 1, sizeof(uint32_t), &vertex_count);
-            std::cout <<vertex_count << std::endl;
+            //surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
+            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
+			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
+            mesh = (glm::vec3*) malloc(sizeof(glm::vec3) * vertex_count);
+            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t), sizeof(glm::vec3) * vertex_count, mesh);
+            std::cout << vertex_count  << "Vertex " << std::endl;
+            for(uint32_t i = 0; i < vertex_count; i++) {
+                std::cout << glm::to_string(mesh[i]) << std::endl;
+            }
         }
     };
 

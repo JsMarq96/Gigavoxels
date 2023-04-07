@@ -304,11 +304,10 @@ void draw_loop(GLFWwindow *window) {
 
 		if (first) {
 			surface_nets.generate_from_volume(test_text, 102);
-			return;
 			first = false;
 		} else {
-			for(uint32_t i = 0; i < 20; i++) {
-				//std::cout << glm::to_string(surface_nets.surface_points[i * 50].position) << " "<< surface_nets.surface_points[i * 50].is_surface << std::endl;
+			for(uint32_t i = 0; i < 262140; i++) {
+				//std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
 				
 			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
 			for(uint32_t i = 0; i < 262140 ; i++) {
@@ -323,6 +322,7 @@ void draw_loop(GLFWwindow *window) {
 				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
 			}
 			std::cout  << "FRAME END" << std::endl;
+			return;
 			cube_renderer.render(models, 262140, camera_original_position, projection_mat * view_mat, false);
 		}
 		ImGui::End();
