@@ -16,8 +16,8 @@ namespace SurfaceNets {
     const uint32_t MAX_VERTEX_COUNT = 2000;
 
     struct sSurfacesPoint {
-        glm::vec3 position;
         int is_surface;
+        glm::vec3 position;
         //glm::vec3 normal;
         //float padding2;
     };
@@ -39,7 +39,7 @@ namespace SurfaceNets {
         sShader  mesh_vertex_finder = {};
         sShader  mesh_vertex_generator = {};
 
-        glm::vec3 *mesh = NULL;
+        glm::vec4 *mesh = NULL;
 
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate) {
@@ -87,16 +87,16 @@ namespace SurfaceNets {
             //surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
             //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
 			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
-            mesh = (glm::vec3*) malloc(sizeof(glm::vec3) * vertex_count);
+            mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
             //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t), sizeof(glm::vec3) * vertex_count, mesh);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::vec4) * vertex_count, mesh);
             std::cout << vertex_count  << "Vertex " << std::endl;
             for(uint32_t i = 0; i < vertex_count; i++) {
                 std::cout << "v " << mesh[i].x << " "<< mesh[i].y << " "<< mesh[i].z << std::endl;
             }
 
             for(uint32_t i = 0; i < vertex_count;) {
-                std::cout << "f " << i++ << " " << i++ << " " << i++ << " " << std::endl;
+                std::cout << "f " << (i++)+1 << " " << (i++)+1 << " " << (i++)+1 << std::endl;
             }
 
             free(mesh);

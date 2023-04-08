@@ -192,7 +192,7 @@ void draw_loop(GLFWwindow *window) {
 	for(uint32_t y = 0; y < 64; y++) {
 		for(uint32_t x = 0; x < 64; x++) {
 			for(uint32_t z = 0; z < 64; z++) {
-				text_data[x + 1 + (y+1) * 128 + (z+1) * (128*128)] = 255;
+				text_data[x + 21 + (y+21) * 128 + (z+21) * (128*128)] = 255;
 			}
 		}
 	}

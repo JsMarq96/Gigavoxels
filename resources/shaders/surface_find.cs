@@ -1,8 +1,8 @@
 #version 440
 
 struct sSurfacePoint {
-    vec3 position;
     int is_surface;
+    vec3 position;
 };
 
 layout(std430, binding = 1) buffer vertices_surfaces {
@@ -53,7 +53,7 @@ void main() {
     }
 
     vec3 value = vec3(0.0);
-    if (axis_seed != 0 || axis_seed != 0xff) {
+    if (axis_seed != 0 && axis_seed != 0xff) {
         value = (pos + (point / axis_count) * (1.0/works_size));
     }
 
