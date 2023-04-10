@@ -16,7 +16,7 @@ namespace SurfaceNets {
     const uint32_t MAX_VERTEX_COUNT = 2000;
 
     struct sSurfacesPoint {
-        int is_surface;
+        float is_surface;
         glm::vec3 position;
         //glm::vec3 normal;
         //float padding2;
@@ -31,7 +31,7 @@ namespace SurfaceNets {
     struct sGenerator {
         sRawMesh *vertices;
 
-        sSurfacesPoint* surface_points = NULL;
+        glm::vec4* surface_points = NULL;
 
         uint32_t mesh_area_SSBO = 0;
         uint32_t mesh_vertices_SSBO = 0;
@@ -39,7 +39,7 @@ namespace SurfaceNets {
         sShader  mesh_vertex_finder = {};
         sShader  mesh_vertex_generator = {};
 
-        glm::vec4 *mesh = NULL;
+        glm::ivec4 *mesh = NULL;
 
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate) {
@@ -82,24 +82,26 @@ namespace SurfaceNets {
 			mesh_vertex_generator.deactivate();
 
             // Get the vertices back from the GPU memmory
-            //surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
             uint32_t vertex_count = 0;
-            //surface_points = (sSurfacesPoint*) malloc(vertices_byte_size);
-            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
 			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
-            mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
+            mesh = (glm::ivec4*) malloc(sizeof(glm::ivec4) * vertex_count);
+            surface_points = (glm::vec4*) malloc(vertices_byte_size);
             //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::vec4) * vertex_count, mesh);
-            std::cout << vertex_count  << "Vertex " << std::endl;
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::ivec4) * vertex_count, mesh);
+
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, surface_points);
+
+            for(uint32_t i = 0; i < max_vertex_count; i++) {
+                std::cout << "v " << surface_points[i].x << " "<< surface_points[i].y << " " << surface_points[i].z << std::endl;
+            }
             for(uint32_t i = 0; i < vertex_count; i++) {
-                std::cout << "v " << mesh[i].x << " "<< mesh[i].y << " "<< mesh[i].z << std::endl;
+                std::cout << "f " << mesh[i].x+1 << " "<< mesh[i].y+1 << " "<< mesh[i].z+1 << std::endl;
             }
 
-            for(uint32_t i = 0; i < vertex_count;) {
-                std::cout << "f " << (i++)+1 << " " << (i++)+1 << " " << (i++)+1 << std::endl;
-            }
 
             free(mesh);
+            free(surface_points);
         }
     };
 

@@ -198,7 +198,7 @@ void draw_loop(GLFWwindow *window) {
 	}
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
+	//load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
@@ -234,10 +234,11 @@ void draw_loop(GLFWwindow *window) {
 #ifdef _WIN32
 	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
 #else
-	const char* volume_tex_dir = "resources/bonsai_256x256x256_uint8.raw";
+	const char* volume_tex_dir = "../resources/volumens/bonsai_256x256x256_uint8.raw";
 #endif
 
-	
+	load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
+
 	SurfaceNets::sGenerator surface_nets = {};
 	bool first = true;
 
@@ -303,7 +304,7 @@ void draw_loop(GLFWwindow *window) {
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		if (first) {
-			surface_nets.generate_from_volume(test_text, 102);
+			surface_nets.generate_from_volume(test_text, 125);
 			return;
 			first = false;
 		} else {
@@ -313,14 +314,14 @@ void draw_loop(GLFWwindow *window) {
 			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
 			for(uint32_t i = 0; i < 262140 ; i++) {
 				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
-				if (surface_nets.surface_points[i].is_surface == 0 || surface_nets.surface_points[i].is_surface == 0xff) {
+				//if (surface_nets.surface_points[i].is_surface == 0 || surface_nets.surface_points[i].is_surface == 0xff) {
 					//i--;
 					continue;
-				}
+				//}
 				//std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
-				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
-													  surface_nets.surface_points[i].position),
-				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
+				//models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
+				//									  surface_nets.surface_points[i].position),
+				//                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
 			}
 			std::cout  << "FRAME END" << std::endl;
 			return;
