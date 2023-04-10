@@ -44,7 +44,7 @@ void main() {
     int axis_seed = 0;
     int axis_count = 0;
     for(int i = 0; i < 8; i++) {
-        float density = texelFetch(u_volume_map, pos + DELTAS[i], 0).r;
+        float density = texture(u_volume_map, world_position + (DELTAS[i]/works_size)).r;
 
         if (density > 0.5) {
             point += vec3(DELTAS[i]);
@@ -58,7 +58,6 @@ void main() {
         value = world_position + ((point / axis_count) / works_size);
     } else {
         axis_seed = 0;
-        axis_count = -1;
     }
 
     //atomicAdd(vertices_count, 1);
