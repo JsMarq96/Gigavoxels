@@ -53,13 +53,13 @@ void test_triangle_x(int index, in ivec3 curr_pos, in vec4 current_point) {
     // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t1_v1, t1_v2, 0);
+        mesh_vertices[start_vert] = ivec4(t1_v1, t1_v2, index, 0);
     }
 
     // Test first triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t2_v1, t2_v2, 0);
+        mesh_vertices[start_vert] = ivec4( t2_v1, t2_v2, index, 0);
     }
 }
 
@@ -70,13 +70,13 @@ void test_triangle_y(int index, in ivec3 curr_pos, in vec4 current_point) {
     // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t1_v1, t1_v2, 0);
+        mesh_vertices[start_vert] = ivec4( t1_v1, t1_v2, index, 0);
     }
 
     // Test first triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t2_v1, t2_v2, 0);
+        mesh_vertices[start_vert] = ivec4(t2_v1, t2_v2, index, 0);
     }
 }
 
@@ -87,13 +87,13 @@ void test_triangle_z(int index, in ivec3 curr_pos, in vec4 current_point) {
     // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t1_v1, t1_v2, 0);
+        mesh_vertices[start_vert] = ivec4(t1_v1, t1_v2, index, 0);
     }
 
     // Test first triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
         int start_vert = atomicAdd(mesh_vertices_count, 1);
-        mesh_vertices[start_vert] = ivec4(index, t2_v1, t2_v2, 0);
+        mesh_vertices[start_vert] = ivec4(t2_v1, t2_v2, index, 0);
     }
 }
 
@@ -157,6 +157,18 @@ void main() {
     test_triangle_x(index, post, current_point);
     test_triangle_y(index, post, current_point);
     test_triangle_z(index, post, current_point);
+    /*int axis_seed = int(current_point.w);
+    if (((axis_seed & 4) == 4) || ((axis_seed & 8) == 8)) {
+        test_triangle_x(index, post, current_point);
+    }
+    
+    if (((axis_seed & 1) == 1) || ((axis_seed & 2) == 2)) {
+        test_triangle_y(index, post, current_point);
+    }
+
+    if (((axis_seed & 16) == 16) || ((axis_seed & 32) == 32)) {
+        test_triangle_z(index, post, current_point);
+    }*/
     //test_triangle_y(post, current_point);
     //test_triangle_z(post, current_point);
 }
