@@ -9,14 +9,14 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 uniform highp sampler3D u_volume_map;
 
 const vec3 DELTAS[8] = vec3[8](
-    vec3(0,0,0), // 
-    vec3(1,0,0),
-    vec3(0,1,0),
-    vec3(1,1,0),
-    vec3(0,0,1),
-    vec3(1,0,1),
-    vec3(0,1,1),
-    vec3(1,1,1)
+    vec3(1,1,-1), // 
+    vec3(1,-1,-1),
+    vec3(1,1,1),
+    vec3(1,-1,1),
+    vec3(-1,1,-1),
+    vec3(-1,-1,-1),
+    vec3(-1,1,1),
+    vec3(-1,-1,1)
 );
 
 const vec3 DELTASU[7] = vec3[7](
@@ -49,7 +49,7 @@ void main() {
     int axis_seed = 0;
     int axis_count = 0;
     for(int i = 0; i < 8; i++) {
-        vec3 delta_pos = (world_position + DELTAS[i]/works_size);
+        vec3 delta_pos = (world_position + (DELTAS[i]/2.0)/works_size);
         float density = texture(u_volume_map, delta_pos).r;
 
         if (density > 0.25) {
