@@ -13,8 +13,6 @@
 
 // https://github.com/mikolalysenko/mikolalysenko.github.com/blob/master/Isosurface/js/surfacenets.js
 namespace SurfaceNets {
-    const uint32_t MAX_VERTEX_COUNT = 2000;
-
     struct sSurfacesPoint {
         float is_surface;
         glm::vec3 position;
@@ -39,7 +37,7 @@ namespace SurfaceNets {
         sShader  mesh_vertex_finder = {};
         sShader  mesh_vertex_generator = {};
 
-        glm::ivec4 *mesh = NULL;
+        glm::vec4 *mesh = NULL;
 
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate) {
@@ -84,21 +82,23 @@ namespace SurfaceNets {
             // Get the vertices back from the GPU memmory
             uint32_t vertex_count = 0;
 			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
-            mesh = (glm::ivec4*) malloc(sizeof(glm::ivec4) * vertex_count);
+            mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
             surface_points = (glm::vec4*) malloc(vertices_byte_size);
             //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::ivec4) * vertex_count, mesh);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::vec4) * vertex_count, mesh);
 
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, surface_points);
 
             for(uint32_t i = 0; i < vertex_count; i++) {
-                std::cout << "v " << surface_points[mesh[i].x].x << " "<< surface_points[mesh[i].x].y << " " << surface_points[mesh[i].x].z << std::endl;
-                std::cout << "v " << surface_points[mesh[i].y].x << " "<< surface_points[mesh[i].y].y << " " << surface_points[mesh[i].y].z << std::endl;
-                std::cout << "v " << surface_points[mesh[i].z].x << " "<< surface_points[mesh[i].z].y << " " << surface_points[mesh[i].z].z << std::endl;
+                std::cout << "v " << mesh[i].x << " "<< mesh[i].y << " " << mesh[i].z << std::endl;
+                //std::cout << "v " << surface_points[mesh[i].x].x << " "<< surface_points[mesh[i].x].y << " " << surface_points[mesh[i].x].z << std::endl;
+                //std::cout << "v " << surface_points[mesh[i].y].x << " "<< surface_points[mesh[i].y].y << " " << surface_points[mesh[i].y].z << std::endl;
+                //std::cout << "v " << surface_points[mesh[i].z].x << " "<< surface_points[mesh[i].z].y << " " << surface_points[mesh[i].z].z << std::endl;
             }
+
             for(uint32_t i = 0; i < vertex_count;) {
-                std::cout << "f " << (i++)+1 << " "<< (i++)+1 << " " << (i++)+1 << std::endl;
+                std::cout << "f " << (i++)+1 << " " << (i++)+1 << " " << (i++)+1 << std::endl;
             }
 
 

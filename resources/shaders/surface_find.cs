@@ -41,7 +41,6 @@ void main() {
 	ivec3 curr_index = ivec3(gl_GlobalInvocationID.xyz);
     vec3 works_size =  vec3(gl_NumWorkGroups.xyz);
     vec3 world_position = vec3(curr_index) / works_size;
-    ivec3 pos = ivec3(world_position * 256.0);
 
     uint index = get_index_of_position(curr_index);
 
