@@ -304,7 +304,7 @@ void draw_loop(GLFWwindow *window) {
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		if (first) {
-			surface_nets.generate_from_volume(test_text, 125);
+			surface_nets.generate_from_volume(test_text, 256);
 			return;
 			first = false;
 		} else {

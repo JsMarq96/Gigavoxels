@@ -92,11 +92,13 @@ namespace SurfaceNets {
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, surface_points);
 
-            for(uint32_t i = 0; i < max_vertex_count; i++) {
-                std::cout << "v " << surface_points[i].x << " "<< surface_points[i].y << " " << surface_points[i].z << std::endl;
-            }
             for(uint32_t i = 0; i < vertex_count; i++) {
-                std::cout << "f " << mesh[i].x+1 << " "<< mesh[i].y+1 << " "<< mesh[i].z+1 << std::endl;
+                std::cout << "v " << surface_points[mesh[i].x].x << " "<< surface_points[mesh[i].x].y << " " << surface_points[mesh[i].x].z << std::endl;
+                std::cout << "v " << surface_points[mesh[i].y].x << " "<< surface_points[mesh[i].y].y << " " << surface_points[mesh[i].y].z << std::endl;
+                std::cout << "v " << surface_points[mesh[i].z].x << " "<< surface_points[mesh[i].z].y << " " << surface_points[mesh[i].z].z << std::endl;
+            }
+            for(uint32_t i = 0; i < vertex_count;) {
+                std::cout << "f " << (i++)+1 << " "<< (i++)+1 << " " << (i++)+1 << std::endl;
             }
 
 
