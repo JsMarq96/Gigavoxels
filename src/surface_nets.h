@@ -49,15 +49,31 @@ namespace SurfaceNets {
             size_t mesh_byte_size = sizeof(glm::vec3) * 3 * max_vertex_count;
                         
             uint32_t ssbos[2] = {0,0};
-            glGenBuffers(2, ssbos);
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            // Allocate memory
-            glBufferData(GL_SHADER_STORAGE_BUFFER, vertices_byte_size, NULL, GL_DYNAMIC_COPY);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
+            uint32_t vertex_atomic_counter = 0;
+            // Generate atomic counter
+            {
+                glGenBuffers(1, &vertex_atomic_counter);
+                glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vertex_atomic_counter);
+                uint32_t tmp_counter_value = 0;
+                glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(uint32_t), &tmp_counter_value, GL_DYNAMIC_DRAW);
+            }
+
+            // Generate the SSBOs & allocate
+            {
+                glGenBuffers(2, ssbos);
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
+                glBufferData(GL_SHADER_STORAGE_BUFFER, vertices_byte_size, NULL, GL_DYNAMIC_COPY);
+
+                // Allocate memory for the second SSBO
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
+                glBufferData(GL_SHADER_STORAGE_BUFFER, mesh_byte_size + sizeof(uint32_t), NULL, GL_DYNAMIC_COPY);
+            }
 
             glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
 
+            // FIRST: Detect the surface
             mesh_vertex_finder.activate();
             mesh_vertex_finder.set_uniform_texture("u_volume_map", 0);
             mesh_vertex_finder.dispatch(sampling_rate, 
@@ -66,11 +82,10 @@ namespace SurfaceNets {
                                         true);
 			mesh_vertex_finder.deactivate();
 
-            // Allocate memory
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
-            glBufferData(GL_SHADER_STORAGE_BUFFER, mesh_byte_size + sizeof(uint32_t), NULL, GL_DYNAMIC_COPY);
+            // SECOND: Triangulate
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbos[1]);
+            glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, vertex_atomic_counter);
 
             mesh_vertex_generator.activate();
             mesh_vertex_generator.dispatch(sampling_rate, 
@@ -79,10 +94,11 @@ namespace SurfaceNets {
                                         true);
 			mesh_vertex_generator.deactivate();
 
-            // Get the vertices back from the GPU memmory
             uint32_t vertex_count = 0;
-			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
-            mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
+            glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(uint32_t), &vertex_count);
+            std::cout << vertex_count << " count" << std::endl;
+
+            /*mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
             surface_points = (glm::vec4*) malloc(vertices_byte_size);
             //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::vec4) * vertex_count, mesh);
@@ -103,7 +119,7 @@ namespace SurfaceNets {
 
 
             free(mesh);
-            free(surface_points);
+            free(surface_points);*/
         }
     };
 

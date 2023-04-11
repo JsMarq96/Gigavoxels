@@ -19,16 +19,6 @@ const vec3 DELTAS[8] = vec3[8](
     vec3(1,1,1)
 );
 
-const vec3 DELTASU[7] = vec3[7](
-    vec3(0,0,0), // 0
-    vec3(0,1,0), // 1 0b01
-    vec3(0,-1,0), // 2 0b10
-    vec3(1,0,0),  // 3 0b100
-    vec3(-1,0,0),  // 4 0b1000
-    vec3(0,0,-1), // 5 0b10000
-    vec3(0,0,1)  // 6  0b100000
-);
-
 ivec3 num_work_groups = ivec3(gl_NumWorkGroups.xyz);
 
 int num_work_groups_z_p2 = (num_work_groups.z * num_work_groups.z);
@@ -58,6 +48,7 @@ void main() {
         }
     }
 
+    // TODO: better point fiding!
     vec3 value = vec3(0.0);
     if (axis_count > 0 && axis_count < 8) {
         value = ((point / axis_count));
@@ -65,10 +56,6 @@ void main() {
         axis_seed = 0;
     }
 
-    //atomicAdd(vertices_count, 1);
-    vertices[index] = vec4(value, float(axis_seed));//(vec3(1));
-    //vertices[index].is_surface = 1;
-    //vertices[index].normal = vec3(0.0);//gl_GlobalInvocationID.xyz;
-    //vertices[index].normal.x = axis_count / 8.0;
+    vertices[index] = vec4(value, float(axis_seed));
 }
 
