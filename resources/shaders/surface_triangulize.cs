@@ -10,7 +10,7 @@ layout(std430, binding = 1) buffer vertices_surfaces {
 };
 
 layout(std430, binding = 2) buffer raw_mesh {
-    vec4 mesh_vertices[];
+    ivec4 mesh_vertices[];
 };
 
 layout(binding = 3) uniform atomic_uint mesh_vertices_count;

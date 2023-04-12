@@ -18,6 +18,7 @@
 #include "gigavoxels.h"
 #include "volume_counter.h"
 #include "surface_nets.h"
+#include "net_mesh_rendererer.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -239,6 +240,7 @@ void draw_loop(GLFWwindow *window) {
 
 	load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
 
+	sNetMeshRenderer surface_renderer = {};
 	SurfaceNets::sGenerator surface_nets = {};
 	bool first = true;
 
@@ -304,7 +306,7 @@ void draw_loop(GLFWwindow *window) {
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
 		if (first) {
-			surface_nets.generate_from_volume(test_text, 256);
+			surface_nets.generate_from_volume(test_text, 256, &surface_renderer);
 			return;
 			first = false;
 		} else {

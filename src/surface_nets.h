@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <cmath>
 #include <stdint.h>
@@ -8,6 +9,7 @@
 #include "glcorearb.h"
 #include "shader.h"
 #include "texture.h"
+#include "net_mesh_rendererer.h"
 
 #include "glm/gtx/string_cast.hpp"
 
@@ -40,7 +42,8 @@ namespace SurfaceNets {
         glm::vec4 *mesh = NULL;
 
         void generate_from_volume(const sTexture &volume_texture, 
-                                  const uint32_t sampling_rate) {
+                                  const uint32_t sampling_rate, 
+                                  sNetMeshRenderer *renderer) {
             mesh_vertex_finder.load_file_compute_shader("../resources/shaders/surface_find.cs");
             mesh_vertex_generator.load_file_compute_shader("../resources/shaders/surface_triangulize.cs");
 
@@ -69,34 +72,53 @@ namespace SurfaceNets {
                 glBufferData(GL_SHADER_STORAGE_BUFFER, mesh_byte_size + sizeof(uint32_t), NULL, GL_DYNAMIC_COPY);
             }
 
-            glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
+            // FIRST PASS: Detect the surface
+            {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
 
-            // FIRST: Detect the surface
-            mesh_vertex_finder.activate();
-            mesh_vertex_finder.set_uniform_texture("u_volume_map", 0);
-            mesh_vertex_finder.dispatch(sampling_rate, 
-                                        sampling_rate,
-                                        sampling_rate, 
-                                        true);
-			mesh_vertex_finder.deactivate();
+                mesh_vertex_finder.activate();
+                mesh_vertex_finder.set_uniform_texture("u_volume_map", 0);
+                mesh_vertex_finder.dispatch(sampling_rate, 
+                                            sampling_rate,
+                                            sampling_rate, 
+                                            true);
+                mesh_vertex_finder.deactivate();
+            }
 
             // SECOND: Triangulate
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbos[1]);
-            glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, vertex_atomic_counter);
+            {
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbos[1]);
+                glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, vertex_atomic_counter);
 
-            mesh_vertex_generator.activate();
-            mesh_vertex_generator.dispatch(sampling_rate, 
-                                        sampling_rate,
-                                        sampling_rate, 
-                                        true);
-			mesh_vertex_generator.deactivate();
+                mesh_vertex_generator.activate();
+                mesh_vertex_generator.dispatch(sampling_rate, 
+                                            sampling_rate,
+                                            sampling_rate, 
+                                            true);
+                mesh_vertex_generator.deactivate();
+            }
 
             uint32_t vertex_count = 0;
             glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(uint32_t), &vertex_count);
             std::cout << vertex_count << " count" << std::endl;
+
+            uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count);
+            glm::ivec4* raw_indices = (glm::ivec4*) malloc(sizeof(glm::ivec4) * vertex_count);
+
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::ivec4) * vertex_count, raw_indices);
+
+            uint32_t index_count = 0;
+            for(uint32_t i = 0; i < vertex_count; i++) {
+                indices[index_count++] = raw_indices[i].x;
+                indices[index_count++] = raw_indices[i].y;
+                indices[index_count++] = raw_indices[i].z;
+            }
+
+            renderer->config_from_buffers(ssbos[0], indices, index_count);
 
             /*mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
             surface_points = (glm::vec4*) malloc(vertices_byte_size);
