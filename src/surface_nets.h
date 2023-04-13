@@ -44,8 +44,14 @@ namespace SurfaceNets {
         void generate_from_volume(const sTexture &volume_texture, 
                                   const uint32_t sampling_rate, 
                                   sNetMeshRenderer *renderer) {
+#ifdef _WIN32
+            mesh_vertex_finder.load_file_compute_shader("..\\resources\\shaders\\surface_find.cs");
+            mesh_vertex_generator.load_file_compute_shader("..\\resources\\shaders\\surface_triangulize.cs");
+#else
             mesh_vertex_finder.load_file_compute_shader("../resources/shaders/surface_find.cs");
             mesh_vertex_generator.load_file_compute_shader("../resources/shaders/surface_triangulize.cs");
+#endif
+           
 
             uint32_t max_vertex_count = sampling_rate * sampling_rate * sampling_rate;
             size_t vertices_byte_size = sizeof(sSurfacesPoint) * max_vertex_count;
@@ -105,7 +111,7 @@ namespace SurfaceNets {
             glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(uint32_t), &vertex_count);
             std::cout << vertex_count << " count" << std::endl;
 
-            uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count);
+            uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count * 3);
             glm::ivec4* raw_indices = (glm::ivec4*) malloc(sizeof(glm::ivec4) * vertex_count);
 
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);

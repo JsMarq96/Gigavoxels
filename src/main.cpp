@@ -177,7 +177,6 @@ void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir
     *farv = ray_dir * tmax + ray_origin;
 }
 
-glm::mat4x4 models[262155] = {};
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
@@ -205,19 +204,19 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial raymarching_material;
 
 #ifdef _WIN32
-	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
-	octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
-	raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
+	//cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
+	//octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
+	//raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/color_fragment.fsh"));
 	raymarching_material.add_shader("resources/shaders/basic_vertex.vs", "resources/shaders/raymarching_fragment.fs");
 #endif
-	cube_renderer.create_from_mesh(&cube_mesh);
+	//cube_renderer.create_from_mesh(&cube_mesh);
 
-	raymarching_material.textures[VOLUME_MAP] = test_text;
-	raymarching_material.enabled_textures[VOLUME_MAP] = true;
+	//raymarching_material.textures[VOLUME_MAP] = test_text;
+	//raymarching_material.enabled_textures[VOLUME_MAP] = true;
 
 
 	double prev_frame_time = glfwGetTime();
@@ -233,12 +232,12 @@ void draw_loop(GLFWwindow *window) {
 	float camera_height = 5.5f;
 
 #ifdef _WIN32
-	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
+	const char* volume_tex_dir = get_path("resources\\volumens\\bonsai_256x256x256_uint8.raw");
 #else
 	const char* volume_tex_dir = "../resources/volumens/bonsai_256x256x256_uint8.raw";
 #endif
 
-	load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
+	load3D_monochrome(&test_text,volume_tex_dir, 256, 256, 256);
 
 	sNetMeshRenderer surface_renderer = {};
 	SurfaceNets::sGenerator surface_nets = {};
@@ -292,7 +291,8 @@ void draw_loop(GLFWwindow *window) {
 		ImGui::Checkbox("Raymarching", &raymarch_or_octree);
 
 		// Config scene
-		glm::vec3 camera_original_position = rotate_point(glm::vec3{5.0f, camera_height, 5.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
+		glm::mat4x4 model = glm::mat4x4(1.0f);
+		glm::vec3 camera_original_position = rotate_point(glm::vec3{2.0f, camera_height, 2.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
 		//std::cout  << glm::to_string(camera_original_position) << std::endl;
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
@@ -307,27 +307,9 @@ void draw_loop(GLFWwindow *window) {
 
 		if (first) {
 			surface_nets.generate_from_volume(test_text, 256, &surface_renderer);
-			return;
 			first = false;
 		} else {
-			for(uint32_t i = 0; i < 262140; i++) {
-				//std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
-				
-			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
-			for(uint32_t i = 0; i < 262140 ; i++) {
-				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
-				//if (surface_nets.surface_points[i].is_surface == 0 || surface_nets.surface_points[i].is_surface == 0xff) {
-					//i--;
-					continue;
-				//}
-				//std::cout << glm::to_string(surface_nets.surface_points[i].position) << " "<< surface_nets.surface_points[i].is_surface << std::endl;
-				//models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
-				//									  surface_nets.surface_points[i].position),
-				//                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
-			}
-			std::cout  << "FRAME END" << std::endl;
-			return;
-			cube_renderer.render(models, 262140, camera_original_position, projection_mat * view_mat, false);
+			surface_renderer.render(&model, 1, camera_original_position, projection_mat * view_mat, false);
 		}
 		ImGui::End();
 

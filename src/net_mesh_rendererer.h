@@ -17,7 +17,7 @@ struct sNetMeshRenderer {
     unsigned int  VBO = 0;
     unsigned int  EBO = 0;
 
-    uint16_t indices_count = 0;
+    uint32_t indices_count = 0;
 
     sMaterial material;
 
@@ -43,9 +43,14 @@ struct sNetMeshRenderer {
         // Load vertex indexing
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
         glBindVertexArray(0);
+
+        // Load material       
+#ifdef _WIN32
+        material.add_shader(("..\\resources\\shaders\\basic_vertex.vs"), ("..\\resources\\shaders\\color_fragment.fs"));
+#else
+         material.add_shader(("../resources/shaders/basic_vertex.vs"), ("../resources/shaders/color_fragment.fs"));
+#endif
     }
 
     void render(const glm::mat4x4 *models,
@@ -60,6 +65,8 @@ struct sNetMeshRenderer {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         material.enable();
+
+        glDisable(GL_CULL_FACE);
 
         for(int i = 0; i < count; i++) {
             material.shader.set_uniform_matrix4("u_model_mat", models[i]);
