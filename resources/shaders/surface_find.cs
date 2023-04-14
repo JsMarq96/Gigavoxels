@@ -41,7 +41,7 @@ void main() {
         vec3 delta_pos = (world_position + (DELTAS[i])/works_size);
         float density = texture(u_volume_map, delta_pos).r;
 
-        if (density > 0.25) {
+        if (density > 0.15) {
             point += delta_pos;
             axis_seed |= 1 << i;
             axis_count++;
