@@ -10,10 +10,12 @@ layout(std430, binding = 1) buffer vertices_surfaces {
 };
 
 layout(std430, binding = 2) buffer raw_mesh {
-    ivec4 mesh_vertices[];
+    vec4 mesh_vertices[];
 };
 
-layout(binding = 3) uniform atomic_uint mesh_vertices_count;
+layout(std430, binding = 3) buffer vertex_count {
+    uint mesh_vertices_count;
+};
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
@@ -52,14 +54,18 @@ void test_triangle_x(int index, in ivec3 curr_pos, in vec4 current_point) {
 
     // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t1_v1, t1_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t1_v1];
+        mesh_vertices[start_vert+2] = vertices[t1_v2];
     }
 
     // Test second triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t2_v1, t2_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t2_v1];
+        mesh_vertices[start_vert+2] = vertices[t2_v2];
     }
 }
 
@@ -67,16 +73,20 @@ void test_triangle_y(int index, in ivec3 curr_pos, in vec4 current_point) {
     int t1_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[0]), t1_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[1]);
     int t2_v1 = get_index_of_position(curr_pos + TEST_AXIS_Y[2]), t2_v2 = get_index_of_position(curr_pos + TEST_AXIS_Y[3]);
 
-    // Test first triangle
+   // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t1_v1, t1_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t1_v1];
+        mesh_vertices[start_vert+2] = vertices[t1_v2];
     }
 
     // Test second triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t2_v1, t2_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t2_v1];
+        mesh_vertices[start_vert+2] = vertices[t2_v2];
     }
 }
 
@@ -86,14 +96,18 @@ void test_triangle_z(int index, in ivec3 curr_pos, in vec4 current_point) {
 
     // Test first triangle
     if (vertices[t1_v1].w != 0.0 && vertices[t1_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t1_v1, t1_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t1_v1];
+        mesh_vertices[start_vert+2] = vertices[t1_v2];
     }
 
     // Test second triangle
     if (vertices[t2_v1].w != 0.0 && vertices[t2_v2].w != 0.0) { // Early out
-        uint start_vert = atomicCounterIncrement(mesh_vertices_count);
-        mesh_vertices[start_vert] = ivec4(t2_v1, t2_v2, index, 0);
+        uint start_vert = atomicAdd(mesh_vertices_count, 3);
+        mesh_vertices[start_vert] = current_point;
+        mesh_vertices[start_vert+1] = vertices[t2_v1];
+        mesh_vertices[start_vert+2] = vertices[t2_v2];
     }
 }
 

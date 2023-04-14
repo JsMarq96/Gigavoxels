@@ -57,25 +57,22 @@ namespace SurfaceNets {
             size_t vertices_byte_size = sizeof(sSurfacesPoint) * max_vertex_count;
             size_t mesh_byte_size = sizeof(glm::vec3) * 3 * max_vertex_count;
                         
-            uint32_t ssbos[2] = {0,0};
-            uint32_t vertex_atomic_counter = 0;
-            // Generate atomic counter
-            {
-                glGenBuffers(1, &vertex_atomic_counter);
-                glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vertex_atomic_counter);
-                uint32_t tmp_counter_value = 0;
-                glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(uint32_t), &tmp_counter_value, GL_DYNAMIC_DRAW);
-            }
+            uint32_t ssbos[3] = {0,0,3};
 
             // Generate the SSBOs & allocate
             {
-                glGenBuffers(2, ssbos);
+                glGenBuffers(3, ssbos);
                 glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
                 glBufferData(GL_SHADER_STORAGE_BUFFER, vertices_byte_size, NULL, GL_DYNAMIC_COPY);
 
                 // Allocate memory for the second SSBO
                 glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
                 glBufferData(GL_SHADER_STORAGE_BUFFER, mesh_byte_size + sizeof(uint32_t), NULL, GL_DYNAMIC_COPY);
+
+                // Allocate memory for the index SSBO
+                uint32_t empty = 0;
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[2]);
+                glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t), &empty, GL_DYNAMIC_COPY);
             }
 
             // FIRST PASS: Detect the surface
@@ -97,7 +94,7 @@ namespace SurfaceNets {
             {
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbos[0]);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbos[1]);
-                glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, vertex_atomic_counter);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbos[2]);
 
                 mesh_vertex_generator.activate();
                 mesh_vertex_generator.dispatch(sampling_rate, 
@@ -108,11 +105,13 @@ namespace SurfaceNets {
             }
 
             uint32_t vertex_count = 0;
-            glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(uint32_t), &vertex_count);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[2]);
+            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
             std::cout << vertex_count << " count" << std::endl;
+            renderer->config_from_buffers(ssbos[1], vertex_count);
 
-            uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count * 3);
-            glm::ivec4* raw_indices = (glm::ivec4*) malloc(sizeof(glm::ivec4) * vertex_count);
+            //uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count * 3);
+            /*glm::vec4* raw_indices = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
 
             glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::ivec4) * vertex_count, raw_indices);
@@ -124,7 +123,7 @@ namespace SurfaceNets {
                 indices[index_count++] = raw_indices[i].z;
             }
 
-            renderer->config_from_buffers(ssbos[0], indices, index_count);
+            */
 
             /*mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
             surface_points = (glm::vec4*) malloc(vertices_byte_size);

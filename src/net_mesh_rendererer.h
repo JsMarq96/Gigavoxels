@@ -21,14 +21,14 @@ struct sNetMeshRenderer {
 
     sMaterial material;
 
-    void config_from_buffers(const uint32_t vertex_buffer, const uint32_t *indices, const uint32_t index_count) {
+    void config_from_buffers(const uint32_t vertex_buffer, const uint32_t index_count) {
         indices_count = index_count;
         VBO = vertex_buffer;
 
-        glGenBuffers(1, &EBO);
+        //glGenBuffers(1, &EBO);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
 
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
@@ -41,7 +41,7 @@ struct sNetMeshRenderer {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
 
         // Load vertex indexing
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         glBindVertexArray(0);
 
@@ -72,7 +72,8 @@ struct sNetMeshRenderer {
             material.shader.set_uniform_matrix4("u_model_mat", models[i]);
             material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
             material.shader.set_uniform_vector("u_camera_position", camera_position);
-            glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
+            //glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
+            glDrawArrays(GL_TRIANGLES, 0, indices_count);
         }
 
         material.disable();
