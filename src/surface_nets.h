@@ -18,8 +18,6 @@ namespace SurfaceNets {
     struct sSurfacesPoint {
         float is_surface;
         glm::vec3 position;
-        //glm::vec3 normal;
-        //float padding2;
     };
 
     struct sRawMesh {
@@ -109,44 +107,6 @@ namespace SurfaceNets {
             glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(uint32_t), &vertex_count);
             std::cout << vertex_count << " count" << std::endl;
             renderer->config_from_buffers(ssbos[1], vertex_count);
-
-            //uint32_t* indices = (uint32_t*) malloc(sizeof(uint32_t) * vertex_count * 3);
-            /*glm::vec4* raw_indices = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
-
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[1]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::ivec4) * vertex_count, raw_indices);
-
-            uint32_t index_count = 0;
-            for(uint32_t i = 0; i < vertex_count; i++) {
-                indices[index_count++] = raw_indices[i].x;
-                indices[index_count++] = raw_indices[i].y;
-                indices[index_count++] = raw_indices[i].z;
-            }
-
-            */
-
-            /*mesh = (glm::vec4*) malloc(sizeof(glm::vec4) * vertex_count);
-            surface_points = (glm::vec4*) malloc(vertices_byte_size);
-            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32_t) + sizeof(glm::vec3), sizeof(glm::vec4) * vertex_count, mesh);
-
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[0]);
-            glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vertices_byte_size, surface_points);
-
-            for(uint32_t i = 0; i < vertex_count; i++) {
-                std::cout << "v " << mesh[i].x << " "<< mesh[i].y << " " << mesh[i].z << std::endl;
-                //std::cout << "v " << surface_points[mesh[i].x].x << " "<< surface_points[mesh[i].x].y << " " << surface_points[mesh[i].x].z << std::endl;
-                //std::cout << "v " << surface_points[mesh[i].y].x << " "<< surface_points[mesh[i].y].y << " " << surface_points[mesh[i].y].z << std::endl;
-                //std::cout << "v " << surface_points[mesh[i].z].x << " "<< surface_points[mesh[i].z].y << " " << surface_points[mesh[i].z].z << std::endl;
-            }
-
-            for(uint32_t i = 0; i < vertex_count;) {
-                std::cout << "f " << (i++)+1 << " " << (i++)+1 << " " << (i++)+1 << std::endl;
-            }
-
-
-            free(mesh);
-            free(surface_points);*/
         }
     };
 

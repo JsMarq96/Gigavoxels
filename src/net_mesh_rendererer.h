@@ -24,12 +24,7 @@ struct sNetMeshRenderer {
     void config_from_buffers(const uint32_t vertex_buffer, const uint32_t index_count) {
         indices_count = index_count;
         VBO = vertex_buffer;
-
-        //glGenBuffers(1, &EBO);
-
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
-
+        
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
@@ -39,9 +34,6 @@ struct sNetMeshRenderer {
         // Vertex position
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
-
-        // Load vertex indexing
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         glBindVertexArray(0);
 
