@@ -26,6 +26,7 @@ namespace Octree {
 
     struct sGPUOctree {
         uint32_t  SSBO;
+        size_t    element_size;
         size_t    byte_size;
 
         inline void bind(const uint32_t location) {
@@ -33,8 +34,47 @@ namespace Octree {
         }
     };
 
-    inline void generate_octree_from_3d_texture(const sTexture &texture) {
-        
+    inline void generate_octree_from_3d_texture(const sTexture &volume_texture, 
+                                                sGPUOctree *octree_to_fill) {
+        // TODO only square textures
+        // Compute the total size of the octree
+        size_t element_size = 0;
+        size_t number_of_levels = log2(volume_texture.depth);
+        uint32_t *levels_start_index = (uint32_t*) malloc(sizeof(uint32_t) * number_of_levels);
+        for(uint32_t i = 0; i <= number_of_levels; i++) {
+            levels_start_index[i] = element_size;
+
+            size_t size_of_level = (uint32_t) pow(2, i * 3);
+            element_size += size_of_level;
+        }
+
+        size_t octree_bytesize = sizeof(sOctreeNode) * element_size;
+
+
+        // Generate SSBO and the shaders
+        uint32_t SSBO;
+        glGenBuffers(1, &SSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, octree_bytesize, NULL, GL_DYNAMIC_COPY);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
+
+        sShader compute_first_pass = {};
+        compute_first_pass.load_compute_shader("resources/shaders.octree_load.cs");
+
+        // First compute pass: Upload the data from the texture
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
+
+        compute_first_pass.activate();
+        compute_first_pass.set_uniform_texture("u_volume_map", 0);
+        compute_first_pass.dispatch(volume_texture.depth/4, 
+                                    volume_texture.depth/4, 
+                                    volume_texture.depth/4, 
+                                    true);
+        compute_first_pass.deactivate();
+
+
+        free(levels_start_index);
     }
 
 

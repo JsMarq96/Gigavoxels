@@ -207,7 +207,8 @@ void draw_loop(GLFWwindow *window) {
 
 	Octree::sGPUOctree octree = {};
 
-	Octree::create_test_octree_two_layers(&octree);
+	//Octree::create_test_octree_two_layers(&octree);
+	Octree::generate_octree_from_3d_texture(test_text, &octree);
 
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
