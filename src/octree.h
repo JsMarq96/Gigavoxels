@@ -33,6 +33,10 @@ namespace Octree {
         }
     };
 
+    inline void generate_octree_from_3d_texture(const sTexture &texture) {
+        
+    }
+
 
     inline void create_test_octree_two_layers(sGPUOctree *to_fill) {
         size_t octree_node_size = 1 + 8;

@@ -88,21 +88,20 @@ const uint EMPTY_LEAF = 2u;
 vec3 center_story[MAX_STEPS];
 uint index_memory[MAX_STEPS];
 
-void roll_back_steps(inout uint current_index, inout vec3 size, in vec3 point) {
-    uint index = current_index-1u;
+uint roll_back_steps(in uint current_index, inout vec3 size, in vec3 point) {
+    uint index = current_index-2;
     vec3 it_size = size * 2.0;
 
-    for (; index > 0u; index--) {
+    for (; index >= 0u; index--) {
         if (is_inside_AABB(point, center_story[index], it_size)) {
-            current_index = index;
-            size = it_size;
-            return;
+            break;
         }
 
         it_size = it_size*2.0;
     }
 
-    current_index = 0u;
+    size = it_size;
+    return index;
 }
 
 vec3 iterate_octree() {
@@ -121,7 +120,8 @@ vec3 iterate_octree() {
     for(; i < MAX_STEPS; i++) {
         // Update the story stacks
         index_memory[steps] = index;
-        center_story[steps++] = box_origin;
+        center_story[steps] = box_origin;
+        steps++;
 
         sOctreeNode current_node = octree[index];
 
@@ -129,25 +129,27 @@ vec3 iterate_octree() {
             return vec3(1.0, 0.0, 0.0);
             return vec3(index/13.0);
         } else if (current_node.is_leaf == EMPTY_LEAF) {
-            vec3 p1 = far - ray_origin * 0.01; // TODO set this as half the size of the smallest voxel
+            vec3 p1 = far - ray_origin * 0.001; // TODO set this as half the size of the smallest voxel
 
             if (!is_inside_AABB(p1, vec3(0.0, 0.0, 0.0), vec3(2.0))) {
-                return vec3(0.0);
+                return vec3(1.0);
             }
             
-            roll_back_steps(steps, box_size, p1);
-            box_origin = vec3(0.0);
+            //if (steps == 1u) {
+            //    return vec3(0.0);
+            //}
+            steps = roll_back_steps(steps, box_size, p1);
+            
+            box_origin = center_story[steps];
 
             octant_index = get_octant_index_of_pos(p1, box_origin, relative_octant_center);
 
-            index = octree[0].child_index + octant_index;
-            //return vec3(index/13.0);
+            index = octree[index_memory[steps++]].child_index + octant_index;
+            
         } else {
             // Non leaf case
             // update the index to base index ofn the child + the index for the octant
             index = current_node.child_index + octant_index;
-
-             
         }
         
             // Go down one level
