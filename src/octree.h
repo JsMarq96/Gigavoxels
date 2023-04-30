@@ -45,10 +45,10 @@ namespace Octree {
         octree[0].child_indexes = 1;
 
         for(uint32_t i = 0; i < 8;i++) {
-            octree[1 + i].is_leaf = 2;//(i % 2 
+            octree[1 + i].is_leaf = (i % 2) + 1;
             std::cout << 1 + i << " is " << (i % 2) + 1 << std::endl;
         }
-        octree[1].is_leaf = FULL_LEAF;
+        octree[8].is_leaf = FULL_LEAF;
 
         // Upload to the GPU
         uint32_t SSBO;

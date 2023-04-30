@@ -135,9 +135,8 @@ vec3 iterate_octree() {
                 return vec3(0.0);
             }
             
-            //roll_back_steps(steps, box_size, p1);
+            roll_back_steps(steps, box_size, p1);
             box_origin = vec3(0.0);
-            box_size = vec3(2.0);
 
             octant_index = get_octant_index_of_pos(p1, box_origin, relative_octant_center);
 
