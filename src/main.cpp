@@ -198,7 +198,7 @@ void draw_loop(GLFWwindow *window) {
 	}
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 128, 128, 128);
+	load_raw_3D_texture(&test_text, text_data, 64, 64, 64);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
@@ -302,9 +302,9 @@ void draw_loop(GLFWwindow *window) {
 
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
-		octree.bind(2);
+		//octree.bind(2);
 
-		cube_renderer.render(models, 1, camera_original_position, projection_mat * view_mat, false);
+		//cube_renderer.render(models, 1, camera_original_position, projection_mat * view_mat, false);
 		
 		ImGui::End();
 

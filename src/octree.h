@@ -39,11 +39,11 @@ namespace Octree {
         // TODO only square textures
         // Compute the total size of the octree
         size_t element_size = 0;
-        size_t number_of_levels = log2(volume_texture.depth);
-        uint32_t *levels_start_index = (uint32_t*) malloc(sizeof(uint32_t) * number_of_levels);
+        size_t number_of_levels = log2(volume_texture.depth) / 3;
+        uint32_t *levels_start_index = (uint32_t*) malloc(sizeof(uint32_t) * number_of_levels+1);
         for(uint32_t i = 0; i <= number_of_levels; i++) {
             levels_start_index[i] = element_size;
-
+            
             size_t size_of_level = (uint32_t) pow(2, i * 3);
             element_size += size_of_level;
         }
@@ -58,20 +58,45 @@ namespace Octree {
         glBufferData(GL_SHADER_STORAGE_BUFFER, octree_bytesize, NULL, GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
 
-        sShader compute_first_pass = {};
-        compute_first_pass.load_compute_shader("resources/shaders.octree_load.cs");
+        sShader compute_first_pass = {}, compute_n_pass = {};
+        compute_first_pass.load_file_compute_shader("resources/shaders/octree_load.cs");
+        //compute_n_pass.load_file_compute_shader("resources/shaders/octree_generate.cs");
 
         // First compute pass: Upload the data from the texture
         glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
 
+        std::cout << "start at" << levels_start_index[number_of_levels] << std::endl;
+
         compute_first_pass.activate();
         compute_first_pass.set_uniform_texture("u_volume_map", 0);
-        compute_first_pass.dispatch(volume_texture.depth/4, 
-                                    volume_texture.depth/4, 
-                                    volume_texture.depth/4, 
+        compute_first_pass.set_uniform("u_layer_start", levels_start_index[number_of_levels]);
+        compute_first_pass.dispatch(volume_texture.depth/2, 
+                                    volume_texture.depth/2, 
+                                    volume_texture.depth/2, 
                                     true);
         compute_first_pass.deactivate();
+
+        return;
+
+        for(uint32_t i = number_of_levels-1; i <= 0; i--) {
+            compute_n_pass.activate();
+            compute_n_pass.set_uniform("u_curr_layer_start", levels_start_index[number_of_levels]);
+            compute_n_pass.set_uniform("u_prev_layer_start", levels_start_index[number_of_levels+1]);
+
+            uint32_t curr_size = (uint32_t) pow(2, number_of_levels * 3);
+            uint32_t prev_size = (uint32_t) pow(2, (number_of_levels+1) * 3);
+            compute_n_pass.set_uniform_vector("u_curr_layer_size", glm::vec3(curr_size, curr_size, curr_size));
+            compute_n_pass.set_uniform_vector("u_prev_layer_size", glm::vec3(prev_size, prev_size, prev_size));
+
+            compute_n_pass.dispatch(curr_size/2, 
+                                    curr_size/2, 
+                                    curr_size/2, 
+                                    true);
+
+            compute_n_pass.deactivate();
+
+        }
 
 
         free(levels_start_index);
