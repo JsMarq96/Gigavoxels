@@ -17,7 +17,7 @@
 #include "input_layer.h"
 #include "gigavoxels.h"
 #include "volume_counter.h"
-#include "surface_nets.h"
+#include "octree.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -176,7 +176,7 @@ void ray_aabb_intersection(const glm::vec3 &ray_origin, const glm::vec3 &ray_dir
     *farv = ray_dir * tmax + ray_origin;
 }
 
-glm::mat4x4 models[262155] = {};
+glm::mat4x4 models[20] = {};
 void draw_loop(GLFWwindow *window) {
 	glfwMakeContextCurrent(window);
 
@@ -203,13 +203,19 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial octree_material;
 	sMaterial raymarching_material;
 
+	models[0] = glm::mat4x4(1.0f);
+
+	Octree::sGPUOctree octree = {};
+
+	Octree::create_test_octree_two_layers(&octree);
+
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
 	raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
-	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/gigavoxel_fragment.fs"));
+	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/octree.fs"));
 #endif
 	cube_renderer.create_from_mesh(&cube_mesh);
 
@@ -236,7 +242,7 @@ void draw_loop(GLFWwindow *window) {
 #endif
 
 	
-	SurfaceNets::sGenerator surface_nets = {};
+	//SurfaceNets::sGenerator surface_nets = {};
 	bool first = true;
 
 	//return;
@@ -292,31 +298,13 @@ void draw_loop(GLFWwindow *window) {
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
 		glm::mat4x4 projection_mat = glm::perspective(glm::radians(45.0f), (float) WIN_WIDTH / (float) WIN_HEIGHT, 0.1f, 100.0f);
 
-		if (raymarch_or_octree) {
-			cube_renderer.material = raymarching_material;
-		} else {
-			cube_renderer.material = octree_material;
-		}
 
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
-		if (first) {
-			surface_nets.generate_from_volume(test_text, 62);
-			first = false;
-		} else {
-			for(uint32_t i = 0; i < 20; i++) {
-				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
-				
-			}//std::cout << glm::to_string(surface_nets.vertices->vertices[0].position) <<  glm::to_string(surface_nets.vertices->vertices[0].normal) << std::endl;
-			for(uint32_t i = 0; i < surface_nets.vertices->vertices_count ; i++) {
-				//std::cout << glm::to_string(surface_nets.vertices->vertices[i].position) <<  glm::to_string(surface_nets.vertices->vertices[i].normal) << std::endl;
-				models[i] = glm::scale(glm::translate(glm::mat4x4(1.0f), 
-													  surface_nets.vertices->vertices[i].position),
-				                  	   {1.0/128.0, 1.0/128.0,1.0/128.0});
-			}
+		octree.bind(2);
 
-			cube_renderer.render(models, surface_nets.vertices->vertices_count, camera_original_position, projection_mat * view_mat, false);
-		}
+		cube_renderer.render(models, 1, camera_original_position, projection_mat * view_mat, false);
+		
 		ImGui::End();
 
 		ImGui::Render();
