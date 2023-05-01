@@ -37,7 +37,7 @@ void main() {
     // Choose the type of current block, based on the type of the children
     uint count = 0u;
     for(uint octant = 0u; octant < 8u; octant++) {
-        count += octree[u_prev_layer_size + prev_layer_index_position + octant].is_leaf;
+        count += octree[u_prev_layer_start + prev_layer_index_position + octant].is_leaf;
     }
 
     // Based on the total count, choose the kind of block that we are building
@@ -49,5 +49,5 @@ void main() {
         count = NON_LEAF;
     }
 
-    octree[u_curr_layer_start + current_layer_position].is_leaf = count;
+    octree[u_curr_layer_start + current_layer_position].is_leaf = u_prev_layer_start + prev_layer_index_position;
 }
