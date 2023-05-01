@@ -21,12 +21,31 @@ const uint NON_LEAF = 0u;
 const uint FULL_LEAF = 1u;
 const uint EMPTY_LEAF = 2u;
 
+const uvec3 child_indexing = uvec3(1u, 2u, 4u);
+
 void main() {
-    vec3 location = gl_GlobalInvocationID / u_curr_layer_size;
-    vec3 prev_location = location * u_prev_layer_size;
+    // Node location: index in workgroup * 8 + index by local size ()
+    const uint current_layer_position = uint(dot(gl_WorkGroupID, vec3(1.0, gl_NumWorkGroups.y, gl_NumWorkGroups.z * gl_NumWorkGroups.z))) * 8u + uint(dot(child_indexing, gl_LocalInvocationID));
 
-    uint curr_local_pos = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * u_curr_layer_size.y + gl_GlobalInvocationID.z * u_curr_layer_size.z * u_curr_layer_size.z;
-    uint prev_local_pos = curr_local_pos.x + curr_local_pos.y * u_prev_layer_size.y + curr_local_pos.z * u_prev_layer_size.z * u_prev_layer_size.z;
+    // Get the prev layer's starting position from the gl_GloblaInvocation
+    // Thanks to the octree structure: prev_layer_starting_index = current_layer_id * 2
+    const uvec3 prev_layer_position = gl_GlobalInvocationID * 2u;
 
+    const uvec3 prev_layer_workgroup_size = uvec3(u_prev_layer_size / 2.0);
+    const uint prev_layer_index_position = uint(dot(prev_layer_position, vec3(1.0, prev_layer_workgroup_size.y, prev_layer_workgroup_size.z * prev_layer_workgroup_size.z))) * 8u;
 
+    uint count = 0u;
+    for(uint octant = 0u; octant < 8u; octant++) {
+        count += octree[u_prev_layer_size + prev_layer_index_position + octant].is_leaf;
+    }
+
+    if (octant == 8u) {
+        count = FULL_LEAF;
+    } else if (octant ==16u) {
+        count = EMPTY_LEAF;
+    } else {
+        count = NON_LEAF;
+    }
+
+    octree[u_curr_layer_start + current_layer_position].is_leaf = count;
 }
