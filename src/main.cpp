@@ -189,17 +189,19 @@ void draw_loop(GLFWwindow *window) {
 	// Test values
 	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
 	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	for(int x= 0; x < 3; x++) {
-		for(int y= 0; y < 3; y++) {
-			for(int z= 0; z < 3; z++) {
-				text_data[x + y * 8 + z * 8 * 8] = 255;
+	for(int x= 0; x < 4; x++) {
+		for(int y= 0; y < 4; y++) {
+			for(int z= 0; z < 4; z++) {
+				text_data[x + y * 30 + z * 30 * 30] = 255;
 			}
 		}
 	}
+	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
 	//text_data[0] = 255;
+	text_data[64] = 255;
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 8, 8, 8);
+	load_raw_3D_texture(&test_text, text_data, 16,16,16);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
@@ -208,7 +210,6 @@ void draw_loop(GLFWwindow *window) {
 
 	Octree::sGPUOctree octree = {};
 
-	//Octree::create_test_octree_two_layers(&octree);
 	//Octree::generate_octree_from_3d_texture(test_text, &octree);
 	//return;
 #ifdef _WIN32
@@ -244,6 +245,7 @@ void draw_loop(GLFWwindow *window) {
 
 	//load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
 	Octree::generate_octree_from_3d_texture(test_text, &octree);
+	//Octree::create_test_octree_two_layers(&octree);
 	//SurfaceNets::sGenerator surface_nets = {};
 	bool first = true;
 

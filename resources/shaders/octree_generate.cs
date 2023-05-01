@@ -32,18 +32,12 @@ void main() {
     const uint prev_layer_index_position = (uint(gl_WorkGroupID.x)+ uint(dot(child_indexing, gl_LocalInvocationID))) * 8u;
 
     // Choose the type of current block, based on the type of the children
-    uint count = 0u;
-    for(uint octant = 0u; octant < 8u; octant++) {
-        count += octree[u_prev_layer_start + prev_layer_index_position + octant].is_leaf;
-    }
-
-    // Based on the total count, choose the kind of block that we are building
-    if (count == 8u) {
-        count = FULL_LEAF;
-    } else if (count == 16u) {
-        count = EMPTY_LEAF;
-    } else {
-        count = NON_LEAF;
+    uint count = octree[u_prev_layer_start + prev_layer_index_position].is_leaf;
+    for(uint octant = 1u; octant < 8u; octant++) {
+        if (count != octree[u_prev_layer_start + prev_layer_index_position + octant].is_leaf) {
+            count = NON_LEAF;
+            break;
+        }
     }
 
     octree[u_curr_layer_start + current_layer_position].is_leaf = count;

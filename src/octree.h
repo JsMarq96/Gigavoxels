@@ -40,7 +40,7 @@ namespace Octree {
         // TODO only square textures
         // Compute the total size of the octree
         size_t element_size = 0;
-        size_t number_of_levels = log2(volume_texture.depth);
+        size_t number_of_levels = log2(volume_texture.width);
         uint32_t levels_start_index[10];
         for(uint32_t i = 0; i <= number_of_levels; i++) {
             levels_start_index[i] = element_size;
@@ -73,12 +73,12 @@ namespace Octree {
 
         std::cout << "start at " << levels_start_index[number_of_levels] << std::endl;
 
-        uint32_t dispatch_size = volume_texture.depth/2;
+        uint32_t dispatch_size = volume_texture.width/2;
         compute_first_pass.activate();
         compute_first_pass.set_uniform_texture("u_volume_map", 0);
         compute_first_pass.set_uniform("u_layer_start", levels_start_index[number_of_levels]);
-        compute_first_pass.set_uniform("u_img_dimm", (uint32_t)volume_texture.depth/2);
-        compute_first_pass.dispatch(dispatch_size * dispatch_size *dispatch_size,1,1,
+        compute_first_pass.set_uniform("u_img_dimm", (uint32_t)volume_texture.width/2);
+        compute_first_pass.dispatch(dispatch_size,dispatch_size,dispatch_size,
                                     true);
         compute_first_pass.deactivate();
 
@@ -125,13 +125,13 @@ namespace Octree {
 
 
         for(uint32_t i = 0; i < 8;i++) {
-            octree[1 + i].is_leaf = ENPTY_LEAD;//(i % 2) + 1;
+            octree[1 + i].is_leaf = (i % 2) + 1;
             std::cout << 1 + i << " is " << (i % 2) + 1 << std::endl;
         }
         // Fill the data
         octree[0].is_leaf = NON_LEAF;
         octree[0].child_indexes = 1;
-        octree[1].is_leaf = FULL_LEAF;
+        octree[2].is_leaf = FULL_LEAF;
         
 
         // Upload to the GPU

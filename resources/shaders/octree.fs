@@ -80,7 +80,7 @@ uint get_octant_index_of_pos(in vec3 pos,
     return comp.x + comp.y + comp.z;
 }
 
-const uint MAX_STEPS = 1500u;
+const uint MAX_STEPS = 100u;
 const uint NON_LEAF = 0u;
 const uint FULL_LEAF = 1u;
 const uint EMPTY_LEAF = 2u;
@@ -89,15 +89,15 @@ vec3 center_story[MAX_STEPS];
 uint index_memory[MAX_STEPS];
 
 uint roll_back_steps(in uint current_index, inout vec3 size, in vec3 point) {
-    uint index = current_index-2;
-    vec3 it_size = size * 2.0;
+    uint index = current_index;
+    vec3 it_size = vec3(1.0) * pow(0.5, index);
 
     for (; index >= 0u; index--) {
         if (is_inside_AABB(point, center_story[index], it_size)) {
             break;
         }
 
-        it_size = it_size*2.0;
+        it_size =  2.0 * it_size;
     }
 
     size = it_size;
@@ -111,55 +111,40 @@ vec3 iterate_octree() {
     vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
     vec3 relative_octant_center;
     uint octant_index;
-
+    
     ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
-    octant_index = get_octant_index_of_pos(near, box_origin, relative_octant_center);
+
+    vec3 it_pos = near + ray_dir * 0.0001;
 
     uint i = 0u;
     uint steps = 0u;
-    for(; i < MAX_STEPS; i++) {
-        // Update the story stacks
-        index_memory[steps] = index;
-        center_story[steps] = box_origin;
-        steps++;
 
-        sOctreeNode current_node = octree[index];
-
-        if (current_node.is_leaf == FULL_LEAF) {
-            return vec3(1.0, 0.0, 0.0);
-            return vec3(index/13.0);
-        } else if (current_node.is_leaf == EMPTY_LEAF) {
-            vec3 p1 = far - ray_origin * 0.001; // TODO set this as half the size of the smallest voxel
-
-            if (!is_inside_AABB(far + ray_origin * 0.01, vec3(0.0, 0.0, 0.0), vec3(2.0))) {
-                return vec3(i / MAX_STEPS);
-            }
-            
-            //if (steps == 1u) {
-            //    return vec3(0.0);
-            //}
-            steps = roll_back_steps(steps, box_size, p1);
-            
-            box_origin = center_story[steps];
-
-            octant_index = get_octant_index_of_pos(p1, box_origin, relative_octant_center);
-
-            index = octree[index_memory[steps++]].child_index + octant_index;
-            
-        } else {
-            // Non leaf case
-            // update the index to base index ofn the child + the index for the octant
-            index = current_node.child_index + octant_index;
+    for(; i <  MAX_STEPS; i++) {
+        if (!is_inside_AABB(it_pos, vec3(0.0), vec3(2.0))) {
+            break;
         }
-        
-            // Go down one level
+        ray_AABB_intersection(it_pos, ray_dir, box_origin, box_size, near, far);
+        octant_index = get_octant_index_of_pos(it_pos, box_origin, relative_octant_center);
+
+        if (octree[index].is_leaf == FULL_LEAF) {
+            return vec3(1.0, 0, 0);
+        } else if (octree[index].is_leaf == EMPTY_LEAF) {
+            it_pos = far + ray_dir * 0.0001;
+
+            steps = roll_back_steps(steps, box_size, it_pos);
+
+            box_origin = center_story[steps];
+            index = index_memory[steps];
+        } else {
+            index = octree[index].child_index + octant_index;
             box_size = box_size * 0.5;
             box_origin = box_origin - (relative_octant_center * (box_size * 0.5));
-            // Compute intersection
-            ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
-            octant_index = get_octant_index_of_pos(near, box_origin, relative_octant_center);
-    }
+        }
 
+        center_story[steps] = box_origin;
+        index_memory[steps++] = index; 
+    }
+    
     return vec3(i / MAX_STEPS);
 }
 
