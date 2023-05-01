@@ -25,14 +25,11 @@ const uvec3 child_indexing = uvec3(1u, 2u, 4u);
 
 void main() {
     // Node location: index in workgroup * 8 + index by local size ()
-    const uint current_layer_position = uint(dot(gl_WorkGroupID, vec3(1.0, gl_NumWorkGroups.y, gl_NumWorkGroups.z * gl_NumWorkGroups.z))) * 8u + uint(dot(child_indexing, gl_LocalInvocationID));
+    const uint current_layer_position = uint(gl_WorkGroupID.x) * 8u + uint(dot(child_indexing, gl_LocalInvocationID));
 
     // Get the prev layer's starting position from the gl_GloblaInvocation
     // Thanks to the octree structure: prev_layer_starting_index = current_layer_id * 2
-    const uvec3 prev_layer_position = gl_GlobalInvocationID * 2u;
-
-    const uvec3 prev_layer_workgroup_size = uvec3(u_prev_layer_size / 2.0);
-    const uint prev_layer_index_position = uint(dot(prev_layer_position, vec3(1.0, prev_layer_workgroup_size.y, prev_layer_workgroup_size.z * prev_layer_workgroup_size.z))) * 8u;
+    const uint prev_layer_index_position = (uint(gl_WorkGroupID.x)+ uint(dot(child_indexing, gl_LocalInvocationID))) * 8u;
 
     // Choose the type of current block, based on the type of the children
     uint count = 0u;
@@ -43,11 +40,12 @@ void main() {
     // Based on the total count, choose the kind of block that we are building
     if (count == 8u) {
         count = FULL_LEAF;
-    } else if (count ==16u) {
+    } else if (count == 16u) {
         count = EMPTY_LEAF;
     } else {
         count = NON_LEAF;
     }
 
-    octree[u_curr_layer_start + current_layer_position].is_leaf = u_prev_layer_start + prev_layer_index_position;
+    octree[u_curr_layer_start + current_layer_position].is_leaf = count;
+    octree[u_curr_layer_start + current_layer_position].child_index = u_prev_layer_start + prev_layer_index_position;
 }

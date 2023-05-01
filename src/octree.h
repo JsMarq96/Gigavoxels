@@ -46,10 +46,12 @@ namespace Octree {
             
             size_t size_of_level = (uint32_t) pow(2, i * 3);
             element_size += size_of_level;
-            std::cout << i << " at " << levels_start_index[i] << std::endl;
+            std::cout << i << " starts at " << levels_start_index[i] << " with size of " << size_of_level << std::endl;
         }
 
         size_t octree_bytesize = sizeof(sOctreeNode) * element_size;
+
+        std::cout << "Total size " << element_size << std::endl;
 
 
         // Generate SSBO and the shaders
@@ -67,7 +69,7 @@ namespace Octree {
         glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, volume_texture.texture_id);
 
-        std::cout << "start at" << levels_start_index[number_of_levels] << std::endl;
+        std::cout << "start at " << levels_start_index[number_of_levels] << std::endl;
 
         compute_first_pass.activate();
         compute_first_pass.set_uniform_texture("u_volume_map", 0);
@@ -78,20 +80,24 @@ namespace Octree {
                                     true);
         compute_first_pass.deactivate();
 
-
-        for(uint32_t i = number_of_levels-1; i > 0; i--) {
+        //return;
+        for(uint32_t i = number_of_levels-1; i >= 1; i--) {
             compute_n_pass.activate();
             compute_n_pass.set_uniform("u_curr_layer_start", levels_start_index[i]);
             compute_n_pass.set_uniform("u_prev_layer_start", levels_start_index[i+1]);
 
             uint32_t curr_size = (uint32_t) pow(2, i * 3);
             uint32_t prev_size = (uint32_t) pow(2, (i+1) * 3);
+            
+            uint32_t local_dispatch_size = (curr_size / 8.0f);
+            uint32_t dispatch_size = std::ceil(pow(local_dispatch_size, 1.0f/ 3.0f));
+
+            std::cout << "Dispatch size " << (uint32_t) dispatch_size << " Curr size: " << curr_size << " layer_start: " << levels_start_index[i] << std::endl;
             compute_n_pass.set_uniform_vector("u_curr_layer_size", glm::vec3(curr_size, curr_size, curr_size));
             compute_n_pass.set_uniform_vector("u_prev_layer_size", glm::vec3(prev_size, prev_size, prev_size));
 
-            compute_n_pass.dispatch(curr_size/8, 
-                                    curr_size/8, 
-                                    curr_size/8,
+            compute_n_pass.dispatch((uint32_t) local_dispatch_size,1,1,
+                                     // + (uint32_t) ceil(glm::mod(local_dispatch_size, (float)dispatch_size)),
                                     true);
 
             compute_n_pass.deactivate();
