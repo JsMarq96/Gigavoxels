@@ -80,7 +80,7 @@ uint get_octant_index_of_pos(in vec3 pos,
     return comp.x + comp.y + comp.z;
 }
 
-const uint MAX_STEPS = 100u;
+const uint MAX_STEPS = 1500u;
 const uint NON_LEAF = 0u;
 const uint FULL_LEAF = 1u;
 const uint EMPTY_LEAF = 2u;
@@ -131,8 +131,8 @@ vec3 iterate_octree() {
         } else if (current_node.is_leaf == EMPTY_LEAF) {
             vec3 p1 = far - ray_origin * 0.001; // TODO set this as half the size of the smallest voxel
 
-            if (!is_inside_AABB(p1, vec3(0.0, 0.0, 0.0), vec3(2.0))) {
-                return vec3(1.0);
+            if (!is_inside_AABB(far + ray_origin * 0.01, vec3(0.0, 0.0, 0.0), vec3(2.0))) {
+                return vec3(i / MAX_STEPS);
             }
             
             //if (steps == 1u) {
@@ -159,6 +159,8 @@ vec3 iterate_octree() {
             ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
             octant_index = get_octant_index_of_pos(near, box_origin, relative_octant_center);
     }
+
+    return vec3(i / MAX_STEPS);
 }
 
 

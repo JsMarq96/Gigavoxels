@@ -189,16 +189,17 @@ void draw_loop(GLFWwindow *window) {
 	// Test values
 	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
 	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	for(uint32_t y = 0; y < 64; y++) {
-		for(uint32_t x = 0; x < 64; x++) {
-			for(uint32_t z = 0; z < 64; z++) {
-				text_data[x + y * 128 + z * (128*128)] = 255;
+	for(int x= 0; x < 3; x++) {
+		for(int y= 0; y < 3; y++) {
+			for(int z= 0; z < 3; z++) {
+				text_data[x + y * 8 + z * 8 * 8] = 255;
 			}
 		}
 	}
+	//text_data[0] = 255;
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 64, 64, 64);
+	load_raw_3D_texture(&test_text, text_data, 8, 8, 8);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;
@@ -208,7 +209,7 @@ void draw_loop(GLFWwindow *window) {
 	Octree::sGPUOctree octree = {};
 
 	//Octree::create_test_octree_two_layers(&octree);
-	Octree::generate_octree_from_3d_texture(test_text, &octree);
+	//Octree::generate_octree_from_3d_texture(test_text, &octree);
 	//return;
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
@@ -238,10 +239,11 @@ void draw_loop(GLFWwindow *window) {
 #ifdef _WIN32
 	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
 #else
-	const char* volume_tex_dir = "resources/bonsai_256x256x256_uint8.raw";
+	const char* volume_tex_dir = "resources/volumens/bonsai_256x256x256_uint8.raw";
 #endif
 
-	
+	//load3D_monochrome(&test_text, volume_tex_dir, 256, 256, 256);
+	Octree::generate_octree_from_3d_texture(test_text, &octree);
 	//SurfaceNets::sGenerator surface_nets = {};
 	bool first = true;
 
@@ -297,9 +299,9 @@ void draw_loop(GLFWwindow *window) {
 
 		//cube_renderer.render(&obj_model, 1, camera_original_position, projection_mat * view_mat, false);
 
-		//octree.bind(2);
+		octree.bind(2);
 
-		//cube_renderer.render(models, 1, camera_original_position, projection_mat * view_mat, false);
+		cube_renderer.render(models, 1, camera_original_position, projection_mat * view_mat, false);
 		
 		ImGui::End();
 

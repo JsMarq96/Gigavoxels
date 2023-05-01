@@ -6,6 +6,7 @@
 #include <cmath>
 #include <stdint.h>
 
+#include "gigavoxels.h"
 #include "gl3w.h"
 #include "glcorearb.h"
 #include "shader.h"
@@ -61,9 +62,10 @@ namespace Octree {
         glBufferData(GL_SHADER_STORAGE_BUFFER, octree_bytesize, NULL, GL_DYNAMIC_COPY);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
 
-        sShader compute_first_pass = {}, compute_n_pass = {};
+        sShader compute_first_pass = {}, compute_n_pass = {}, compute_final_pass = {};
         compute_first_pass.load_file_compute_shader("resources/shaders/octree_load.cs");
         compute_n_pass.load_file_compute_shader("resources/shaders/octree_generate.cs");
+        compute_final_pass.load_file_compute_shader("resources/shaders/octree_generate_tip.cs");
 
         // First compute pass: Upload the data from the texture
         glActiveTexture(GL_TEXTURE0);
@@ -71,12 +73,12 @@ namespace Octree {
 
         std::cout << "start at " << levels_start_index[number_of_levels] << std::endl;
 
+        uint32_t dispatch_size = volume_texture.depth/2;
         compute_first_pass.activate();
         compute_first_pass.set_uniform_texture("u_volume_map", 0);
         compute_first_pass.set_uniform("u_layer_start", levels_start_index[number_of_levels]);
-        compute_first_pass.dispatch(volume_texture.depth/2, 
-                                    volume_texture.depth/2, 
-                                    volume_texture.depth/2, 
+        compute_first_pass.set_uniform("u_img_dimm", (uint32_t)volume_texture.depth/2);
+        compute_first_pass.dispatch(dispatch_size * dispatch_size *dispatch_size,1,1,
                                     true);
         compute_first_pass.deactivate();
 
@@ -103,7 +105,15 @@ namespace Octree {
             compute_n_pass.deactivate();
 
         }
+
+        compute_final_pass.activate(); 
+        compute_final_pass.dispatch((uint32_t) 1,1,1, true);
+        compute_final_pass.deactivate();
+
         std::cout << "Finished" << std::endl;
+
+        octree_to_fill->SSBO = SSBO;
+        //octree_to_fill->byte_size = octree_byte_size;
     }
 
 
@@ -113,15 +123,16 @@ namespace Octree {
 
         sOctreeNode* octree = (sOctreeNode*) malloc(octree_byte_size);
 
+
+        for(uint32_t i = 0; i < 8;i++) {
+            octree[1 + i].is_leaf = ENPTY_LEAD;//(i % 2) + 1;
+            std::cout << 1 + i << " is " << (i % 2) + 1 << std::endl;
+        }
         // Fill the data
         octree[0].is_leaf = NON_LEAF;
         octree[0].child_indexes = 1;
-
-        for(uint32_t i = 0; i < 8;i++) {
-            octree[1 + i].is_leaf = (i % 2) + 1;
-            std::cout << 1 + i << " is " << (i % 2) + 1 << std::endl;
-        }
-        octree[8].is_leaf = FULL_LEAF;
+        octree[1].is_leaf = FULL_LEAF;
+        
 
         // Upload to the GPU
         uint32_t SSBO;
