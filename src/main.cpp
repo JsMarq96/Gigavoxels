@@ -197,8 +197,9 @@ void draw_loop(GLFWwindow *window) {
 		}
 	}
 	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	//text_data[0] = 255;
-	text_data[64] = 255;
+	text_data[8] = 255;
+	//text_data[(16*16*15)] = 255;
+	//text_data[64] = 255;
 
 	sTexture test_text = {};
 	load_raw_3D_texture(&test_text, text_data, 16,16,16);

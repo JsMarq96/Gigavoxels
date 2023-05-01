@@ -87,21 +87,19 @@ const uint EMPTY_LEAF = 2u;
 
 vec3 center_story[MAX_STEPS];
 uint index_memory[MAX_STEPS];
+vec3 sizes_memory[MAX_STEPS];
 
-uint roll_back_steps(in uint current_index, inout vec3 size, in vec3 point) {
+uint roll_back_steps(in uint current_index, in vec3 size, in vec3 point) {
     uint index = current_index;
-    vec3 it_size = vec3(1.0) * pow(0.5, index);
 
-    for (; index >= 0u; index--) {
-        if (is_inside_AABB(point, center_story[index], it_size)) {
+    for (; index > 0u; index--) {
+        if (is_inside_AABB(point, center_story[index], sizes_memory[index])) {
             break;
         }
 
-        it_size =  2.0 * it_size;
     }
 
-    size = it_size;
-    return index;
+    return max(index, 0u);
 }
 
 vec3 iterate_octree() {
@@ -123,8 +121,12 @@ vec3 iterate_octree() {
         if (!is_inside_AABB(it_pos, vec3(0.0), vec3(2.0))) {
             break;
         }
-        ray_AABB_intersection(it_pos, ray_dir, box_origin, box_size, near, far);
+        ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
         octant_index = get_octant_index_of_pos(it_pos, box_origin, relative_octant_center);
+
+        center_story[steps] = box_origin;
+        sizes_memory[steps] = box_size;
+        index_memory[steps] = index;
 
         if (octree[index].is_leaf == FULL_LEAF) {
             return vec3(1.0, 0, 0);
@@ -134,15 +136,21 @@ vec3 iterate_octree() {
             steps = roll_back_steps(steps, box_size, it_pos);
 
             box_origin = center_story[steps];
+            box_size = sizes_memory[steps];
             index = index_memory[steps];
-        } else {
-            index = octree[index].child_index + octant_index;
+
+            octant_index = get_octant_index_of_pos(it_pos, box_origin, relative_octant_center);
             box_size = box_size * 0.5;
             box_origin = box_origin - (relative_octant_center * (box_size * 0.5));
-        }
+            index = octree[index].child_index + octant_index;
 
-        center_story[steps] = box_origin;
-        index_memory[steps++] = index; 
+            //index = octree[index].child_index + octant_index;
+        } else {
+            box_size = box_size * 0.5;
+            box_origin = box_origin - (relative_octant_center * (box_size * 0.5));
+            index = octree[index].child_index + octant_index;
+        }
+        steps++;
     }
     
     return vec3(i / MAX_STEPS);
