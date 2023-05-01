@@ -34,14 +34,16 @@ void main() {
     const uvec3 prev_layer_workgroup_size = uvec3(u_prev_layer_size / 2.0);
     const uint prev_layer_index_position = uint(dot(prev_layer_position, vec3(1.0, prev_layer_workgroup_size.y, prev_layer_workgroup_size.z * prev_layer_workgroup_size.z))) * 8u;
 
+    // Choose the type of current block, based on the type of the children
     uint count = 0u;
     for(uint octant = 0u; octant < 8u; octant++) {
         count += octree[u_prev_layer_size + prev_layer_index_position + octant].is_leaf;
     }
 
-    if (octant == 8u) {
+    // Based on the total count, choose the kind of block that we are building
+    if (count == 8u) {
         count = FULL_LEAF;
-    } else if (octant ==16u) {
+    } else if (count ==16u) {
         count = EMPTY_LEAF;
     } else {
         count = NON_LEAF;
