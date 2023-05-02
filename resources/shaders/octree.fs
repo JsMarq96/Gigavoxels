@@ -102,56 +102,71 @@ uint roll_back_steps(in uint current_index, in vec3 size, in vec3 point) {
     return max(index, 0u);
 }
 
+bool instersection(in vec3 origin, in vec3 size, in vec3 ray_dir, out vec2 t) {
+    float t_min = 100.0, t_max = -100.0;
+    vec3 box_min = origin - (size / 2.0);
+    vec3 box_max = box_min + size;
+
+    // Test first point
+    float tmp = dot(box_min, ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+    // Test point
+    tmp = dot(box_max, ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+    // Test point
+    tmp = dot(vec3(box_min.x, box_min.y, box_max.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+     // Test point
+    tmp = dot(vec3(box_min.x, box_max.y, box_min.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+     // Test point
+    tmp = dot(vec3(box_min.x, box_max.y, box_max.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+     // Test point
+    tmp = dot(vec3(box_max.x, box_min.y, box_min.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+     // Test point
+    tmp = dot(vec3(box_max.x, box_min.y, box_max.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+     // Test point
+    tmp = dot(vec3(box_max.x, box_max.y, box_min.z), ray_dir);
+    t_min = min(t_min, tmp);
+    t_max = max(t_max, tmp);
+
+    t = vec2(t_min, t_max);
+    return t_min < t_max;
+}
+
 vec3 iterate_octree() {
     uint index = 0u;
-    vec3 ray_origin = v_world_position; //(u_model_mat *  vec4(u_camera_eye_local, 1.0)).rgb;
+    vec3 ray_origin = v_world_position;
     vec3 ray_dir = normalize(ray_origin - u_camera_position);
     vec3 near, far, box_origin = vec3(0.0, 0.0, 0.0), box_size = vec3(2.0);
-    vec3 relative_octant_center;
-    uint octant_index;
-    
-    ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
 
-    vec3 it_pos = near + ray_dir * 0.0001;
+    vec2 t_tmp;
+    instersection(box_origin, box_size, ray_dir, t_tmp);
+    float t_max = t_tmp.y, t_min = t_tmp.x;
+    float tv_min, tv_max;
+
+    return ray_dir * t_min + ray_origin;
 
     uint i = 0u;
-    uint steps = 0u;
-    vec3 exit_pos = far;
-
     for(; i <  MAX_STEPS; i++) {
-        if (!is_inside_AABB(it_pos, vec3(0.0), vec3(2.0))) {
-            break;
-        }
-        ray_AABB_intersection(ray_origin, ray_dir, box_origin, box_size, near, far);
-        octant_index = get_octant_index_of_pos(it_pos, box_origin, relative_octant_center);
-
-        center_story[steps] = box_origin;
-        sizes_memory[steps] = box_size;
-        index_memory[steps] = index;
-
-        if (octree[index].is_leaf == FULL_LEAF) {
-            return vec3(1.0, 0, 0);
-        } else if (octree[index].is_leaf == EMPTY_LEAF) {
-            it_pos = far + ray_dir * 0.0001;
-
-            steps = roll_back_steps(steps, box_size, it_pos);
-
-            box_origin = center_story[steps];
-            box_size = sizes_memory[steps];
-            index = index_memory[steps];
-
-            octant_index = get_octant_index_of_pos(it_pos, box_origin, relative_octant_center);
-            box_size = box_size * 0.5;
-            box_origin = box_origin - (relative_octant_center * (box_size * 0.5));
-            index = octree[index].child_index + octant_index;
-
-            //index = octree[index].child_index + octant_index;
-        } else {
-            box_size = box_size * 0.5;
-            box_origin = box_origin - (relative_octant_center * (box_size * 0.5));
-            index = octree[index].child_index + octant_index;
-        }
-        steps++;
+       
     }
     
     return vec3(i / MAX_STEPS);
