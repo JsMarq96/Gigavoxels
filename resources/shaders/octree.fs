@@ -116,6 +116,7 @@ vec3 iterate_octree() {
 
     uint i = 0u;
     uint steps = 0u;
+    vec3 exit_pos = far;
 
     for(; i <  MAX_STEPS; i++) {
         if (!is_inside_AABB(it_pos, vec3(0.0), vec3(2.0))) {

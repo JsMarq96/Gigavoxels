@@ -216,7 +216,7 @@ void draw_loop(GLFWwindow *window) {
 #ifdef _WIN32
 	cube_mesh.load_OBJ_mesh(get_path("resources\\cube.obj"));
 	octree_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\gigavoxel_fragment.fs"));
-	raymarching_material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\raymarching_fragment.fs"));
+	cube_renderer.material.add_shader(get_path("..\\resources\\shaders\\basic_vertex.vs"), get_path("..\\resources\\shaders\\octree.fs"));
 #else
 	cube_mesh.load_OBJ_mesh("resources/cube.obj");
 	cube_renderer.material.add_shader(("resources/shaders/basic_vertex.vs"), ("resources/shaders/octree.fs"));

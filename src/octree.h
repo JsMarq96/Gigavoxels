@@ -63,9 +63,15 @@ namespace Octree {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, SSBO);
 
         sShader compute_first_pass = {}, compute_n_pass = {}, compute_final_pass = {};
+#ifndef _WIN32
         compute_first_pass.load_file_compute_shader("resources/shaders/octree_load.cs");
         compute_n_pass.load_file_compute_shader("resources/shaders/octree_generate.cs");
         compute_final_pass.load_file_compute_shader("resources/shaders/octree_generate_tip.cs");
+#else 
+        compute_first_pass.load_file_compute_shader("resources\\shaders\\octree_load.cs");
+        compute_n_pass.load_file_compute_shader("resources\\shaders\\octree_generate.cs");
+        compute_final_pass.load_file_compute_shader("resources\\shaders\\octree_generate_tip.cs");
+#endif
 
         // First compute pass: Upload the data from the texture
         glActiveTexture(GL_TEXTURE0);
