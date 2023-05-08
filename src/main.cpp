@@ -187,22 +187,15 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial cube_material;
 
 	// Test values
-	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * 128*128*128);
-	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	for(int x= 0; x < 4; x++) {
-		for(int y= 0; y < 4; y++) {
-			for(int z= 0; z < 4; z++) {
-				text_data[x + y * 30 + z * 30 * 30] = 255;
-			}
-		}
-	}
-	memset(text_data, 0, sizeof(uint8_t) * 128*128*128);
-	text_data[8] = 255;
+	uint8_t text_size = 8;
+	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * text_size*text_size*text_size);
+	memset(text_data, 0, sizeof(uint8_t) *text_size*text_size*text_size);
+	text_data[7] = 255;
 	//text_data[(16*16*15)] = 255;
 	//text_data[64] = 255;
 
 	sTexture test_text = {};
-	load_raw_3D_texture(&test_text, text_data, 16,16,16);
+	load_raw_3D_texture(&test_text, text_data, text_size,text_size,text_size);
 
 	sMaterial octree_material;
 	sMaterial raymarching_material;

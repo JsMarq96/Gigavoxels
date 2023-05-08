@@ -98,15 +98,12 @@ namespace Octree {
             uint32_t prev_size = (uint32_t) pow(2, (i+1) * 3);
             
             uint32_t local_dispatch_size = (curr_size / 8.0f);
-            uint32_t dispatch_size = std::ceil(pow(local_dispatch_size, 1.0f/ 3.0f));
 
-            std::cout << "Dispatch size " << (uint32_t) dispatch_size << " Curr size: " << curr_size << " layer_start: " << levels_start_index[i] << std::endl;
+            std::cout << "Dispatch size " << (uint32_t) local_dispatch_size << " Curr size: " << curr_size << " layer_start: " << levels_start_index[i] << " prev_layer_start: " << levels_start_index[i+1] <<std::endl;
             compute_n_pass.set_uniform_vector("u_curr_layer_size", glm::vec3(curr_size, curr_size, curr_size));
             compute_n_pass.set_uniform_vector("u_prev_layer_size", glm::vec3(prev_size, prev_size, prev_size));
 
-            compute_n_pass.dispatch((uint32_t) local_dispatch_size,1,1,
-                                     // + (uint32_t) ceil(glm::mod(local_dispatch_size, (float)dispatch_size)),
-                                    true);
+            compute_n_pass.dispatch((uint32_t) local_dispatch_size,1,1,true);
 
             compute_n_pass.deactivate();
 

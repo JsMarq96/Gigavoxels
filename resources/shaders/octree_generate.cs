@@ -29,6 +29,7 @@ void main() {
 
     // Get the prev layer's starting position from the gl_GloblaInvocation
     // Thanks to the octree structure: prev_layer_starting_index = current_layer_id * 2
+    // very wrong
     const uint prev_layer_index_position = (uint(gl_WorkGroupID.x)+ uint(dot(child_indexing, gl_LocalInvocationID))) * 8u;
 
     // Choose the type of current block, based on the type of the children
