@@ -13,7 +13,7 @@ uniform highp sampler3D u_volume_map;
 //uniform highp sampler2D u_albedo_map; // Noise texture
 //uniform highp float u_density_threshold;
 
-const int MAX_ITERATIONS = 300;
+const int MAX_ITERATIONS = 100;
 const float STEP_SIZE = 0.007; // 0.004 ideal for quality
 const int NOISE_TEX_WIDTH = 100;
 const float DELTA = 0.003;
@@ -30,7 +30,7 @@ vec3 gradient(in vec3 pos) {
 }
 
 vec4 render_volume() {
-    vec3 pos = v_world_position /2 + 0.5;
+    vec3 pos = v_world_position;
     vec3 ray_dir = normalize(pos - u_camera_position);
     vec3 it_pos = pos - ray_dir * 0.001;
     // Add jitter

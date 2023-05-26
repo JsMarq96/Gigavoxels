@@ -291,7 +291,7 @@ void draw_loop(GLFWwindow *window) {
 		ImGui::Checkbox("Raymarching", &raymarch_or_octree);
 
 		// Config scene
-		glm::mat4x4 model = glm::mat4x4(1.0f);
+		glm::mat4x4 model = glm::mat4x4(1.0f); //glm::scale(glm::mat4x4(1.0f), {1.1,1.1,1.1}) ;
 		glm::vec3 camera_original_position = rotate_point(glm::vec3{2.0f, camera_height, 2.0f}, camera_angle, glm::vec3{0.1f, 0.1f, 0.10f});
 		//std::cout  << glm::to_string(camera_original_position) << std::endl;
 		glm::mat4x4 view_mat = glm::lookAt(camera_original_position, glm::vec3{0.1f, 0.1f, 0.10f},  glm::vec3{0.f, 1.0f, 0.0f});
