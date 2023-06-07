@@ -37,21 +37,18 @@ void main() {
     vec3 point = vec3(0.0);
     int axis_seed = 0;
     int axis_count = 0;
-    for(int i = 0; i < 8; i++) {
-        vec3 delta_pos = (world_position + (DELTAS[i])/works_size);
-        float density = texture(u_volume_map, delta_pos).r;
+    vec3 delta_pos = (world_position );
+        float density = texelFetch(u_volume_map, ivec3(world_position * 16.0), 4).r;
 
-        if (density > 0.15) {
-            point += delta_pos;
-            axis_seed |= 1 << i;
-            axis_count++;
+        if (density > 0.05) {
+           axis_count = 5;
         }
-    }
 
     // TODO: better point fiding!
-    vec3 value = vec3(0.0);
+    vec3 value = delta_pos;// * 15.0;
     if (axis_count > 0 && axis_count < 8) {
-        value = ((point / axis_count));
+        axis_seed = 5;
+        //value = ((point / axis_count));
     } else {
         axis_seed = 0;
     }
