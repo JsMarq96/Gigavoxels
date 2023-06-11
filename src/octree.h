@@ -83,7 +83,7 @@ namespace Octree {
         compute_first_pass.activate();
         compute_first_pass.set_uniform_texture("u_volume_map", 0);
         compute_first_pass.set_uniform("u_layer_start", levels_start_index[number_of_levels]);
-        compute_first_pass.set_uniform("u_img_dimm", (uint32_t)volume_texture.width/2);
+        compute_first_pass.set_uniform("u_img_dimm", (uint32_t)dispatch_size);
         compute_first_pass.dispatch(dispatch_size,dispatch_size,dispatch_size,
                                     true);
         compute_first_pass.deactivate();

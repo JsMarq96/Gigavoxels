@@ -187,10 +187,12 @@ void draw_loop(GLFWwindow *window) {
 	sMaterial cube_material;
 
 	// Test values
-	uint8_t text_size = 8;
+	uint8_t text_size = 16;
 	uint8_t *text_data = (uint8_t*) malloc(sizeof(uint8_t) * text_size*text_size*text_size);
 	memset(text_data, 0, sizeof(uint8_t) *text_size*text_size*text_size);
 	text_data[7] = 255;
+	text_data[(text_size / 2) + (text_size / 2) * text_size + (text_size / 2)*text_size*text_size] = 255;
+	text_data[256] = 255;
 	//text_data[(16*16*15)] = 255;
 	//text_data[64] = 255;
 
@@ -232,7 +234,7 @@ void draw_loop(GLFWwindow *window) {
 	float camera_height = 5.5f;
 
 #ifdef _WIN32
-	const char* volume_tex_dir = get_path("resources\\bonsai_256x256x256_uint8.raw");
+	const char* volume_tex_dir = get_path("resources\\volumens\\bonsai_256x256x256_uint8.raw");
 #else
 	const char* volume_tex_dir = "resources/volumens/bonsai_256x256x256_uint8.raw";
 #endif
