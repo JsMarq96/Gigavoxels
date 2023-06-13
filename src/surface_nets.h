@@ -13,6 +13,7 @@
 
 #include "glm/gtx/string_cast.hpp"
 
+
 // https://github.com/mikolalysenko/mikolalysenko.github.com/blob/master/Isosurface/js/surfacenets.js
 namespace SurfaceNets {
     struct sSurfacesPoint {
@@ -46,12 +47,14 @@ namespace SurfaceNets {
                                   sNetMeshRenderer *renderer) {
 #ifdef _WIN32
             mesh_vertex_finder.load_file_compute_shader("..\\resources\\shaders\\surface_find.cs");
-            mesh_vertex_generator.load_file_compute_shader("..\\resources\\shaders\\surface_triangulize.cs");
+            mesh_vertex_generator.load_file_compute_shader("..\\resources\\shaders\\surface_triangulize_to_list.cs");
+            mesh_index_generator.load_file_compute_shader("..\\resources\\shaders\\surface_indices_to_mesh.cs");
+            mesh_index_voxelizator.load_file_compute_shader("..\\resource\\shaders\\surface_to_boxes.cs");
 #else
-            mesh_vertex_finder.load_file_compute_shader("../resources/shaders/surface_find.cs");
-            mesh_vertex_generator.load_file_compute_shader("../resources/shaders/surface_triangulize_to_list.cs");
-            mesh_index_generator.load_file_compute_shader("../resources/shaders/surface_indices_to_mesh.cs");
-            mesh_index_voxelizator.load_file_compute_shader("../resources/shaders/surface_to_boxes.cs");
+            mesh_vertex_finder.load_file_compute_shader(get_path("../resources/shaders/surface_find.cs"));
+            mesh_vertex_generator.load_file_compute_shader(get_path("../resources/shaders/surface_triangulize_to_list.cs"));
+            mesh_index_generator.load_file_compute_shader(get_path("../resources/shaders/surface_indices_to_mesh.cs"));
+            mesh_index_voxelizator.load_file_compute_shader(get_path("../resources/shaders/surface_to_boxes.cs"));
 #endif
            
 

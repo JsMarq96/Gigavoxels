@@ -12,6 +12,8 @@
 #include "material.h"
 #include "camera.h"
 
+
+
 struct sNetMeshRenderer {
     unsigned int  VAO = 0;
     unsigned int  VBO = 0;
@@ -41,7 +43,7 @@ struct sNetMeshRenderer {
 #ifdef _WIN32
         material.add_shader(("..\\resources\\shaders\\basic_vertex.vs"), ("..\\resources\\shaders\\raymarching_fragment.fs"));
 #else
-         material.add_shader(("../resources/shaders/basic_vertex.vs"), ("../resources/shaders/color_fragment.fs"));
+         material.add_shader(("../resources/shaders/basic_vertex.vs"), ("../resources/shaders/raymarching_fragment.fs"));
 #endif
     }
 
