@@ -58,7 +58,7 @@ struct sNetMeshRenderer {
         }
         material.enable();
 
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
 
         for(int i = 0; i < count; i++) {
             material.shader.set_uniform_matrix4("u_model_mat", models[i]);

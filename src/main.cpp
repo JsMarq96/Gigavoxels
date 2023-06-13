@@ -275,12 +275,6 @@ void draw_loop(GLFWwindow *window) {
 		double curr_frame_time = glfwGetTime();
 		double elapsed_time = curr_frame_time - prev_frame_time;
 
-		// Mouse position control
-		glfwGetCursorPos(window, &temp_mouse_x, &temp_mouse_y);
-		input_state->mouse_speed_x = abs(input_state->mouse_pos_x - temp_mouse_x) * elapsed_time;
-		input_state->mouse_speed_y = abs(input_state->mouse_pos_y - temp_mouse_y) * elapsed_time;
-		input_state->mouse_pos_x = temp_mouse_x;
-		input_state->mouse_pos_y = temp_mouse_y;
 
 		// ImGui
 		ImGui::Begin("Scene control");
