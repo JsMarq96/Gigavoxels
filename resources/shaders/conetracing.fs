@@ -171,18 +171,9 @@ vec3 mrm() {
 
     int i = 0;
     float acc = 0.0;
-    for(; dist < 10.414213 && acc < 0.95; i++) {
+    for(; dist > 10.414213 && acc < 0.95; i++) {
         
-
-        float diameter = max(1.0/256.0, 2.0 * CONE_SPREAD * dist);
-        float mip = log2(diameter * (256.0));
-
-        vec3 sample_pos = pos + (dist * ray_dir);
-        float depth = textureLod(u_volume_map, sample_pos / 2.0 + 0.5, mip).r;
-
-        float a = (1.0 - depth);
-        acc = acc + a;
-		dist = dist + diameter * 0.040; 
+        //r = h x tan(n)
     }
 
     //return vec3(acc);
