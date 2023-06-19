@@ -165,7 +165,8 @@ struct sQuadRenderer {
         quad_material.shader.set_uniform_matrix4("u_vp_mat", view_proj);
         quad_material.shader.set_uniform_vector("u_camera_position", camera_position);
         //quad_material.shader.set_uniform_matrix4("u_rotation_mat", rotation_mat);
-        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         for(int i = 0; i < 256; i++) {
             quad_material.shader.set_uniform_matrix4("u_model_mat", models[i]);
             glDrawArrays(GL_TRIANGLES, 0, 6);
