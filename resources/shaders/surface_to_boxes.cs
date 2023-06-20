@@ -1,10 +1,5 @@
 #version 440
 
-struct sSurfacePoint {
-    int is_surface;
-    vec3 position;
-};
-
 layout(std430, binding = 1) buffer vertices_surfaces {
     vec4 vertices[];
 };
