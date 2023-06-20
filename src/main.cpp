@@ -266,7 +266,7 @@ void draw_loop(GLFWwindow *window) {
 
 		// OpenGL stuff
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.5f, 0.0f, 0.5f, 1.0f);
+		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 
 		ImGui_ImplOpenGL3_NewFrame();

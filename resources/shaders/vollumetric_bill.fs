@@ -14,7 +14,7 @@ uniform highp sampler3D u_volume_map;
 void main() {
     float depth = textureLod(u_volume_map, v_world_position * 0.5 + 0.5, 0).r;
 
-    //if (depth < 0.25) { discard;}
+    if (depth < 0.15) { discard;}
 
-    o_frag_color = vec4(depth);
+    o_frag_color = vec4(v_world_position * 0.5 + 0.5, 1.0);
 }
